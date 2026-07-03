@@ -1,10 +1,13 @@
 <script setup lang="ts">
 useHead({ title: 'Ajouter un article' })
 
+const { data: categories } = await useFetch<string[]>('/api/categories', { default: () => [] })
+
 const titre = ref('')
 const sousTitre = ref('')
 const article = ref('')
 const description = ref('')
+const categorie = ref('')
 const visuelFile = ref<File | null>(null)
 const visuelPreview = ref<string | null>(null)
 const isDragging = ref(false)
@@ -56,6 +59,7 @@ async function submit() {
   form.append('sous-titre', sousTitre.value)
   form.append('article', article.value)
   form.append('description', description.value)
+  form.append('categorie', categorie.value)
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
 
   try {

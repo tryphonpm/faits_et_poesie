@@ -13,6 +13,7 @@ export default defineEventHandler(async (event) => {
   const sousTitre = get('sous-titre')
   const article = get('article')
   const description = get('description')
+  const categorie = get('categorie')
   const visuelPart = parts.find((p) => p.name === 'visuel' && p.filename)
 
   if (!titre.trim()) throw createError({ statusCode: 400, message: 'Le titre est obligatoire' })
@@ -32,14 +33,28 @@ export default defineEventHandler(async (event) => {
   }
 
   // ---------- JSON ----------
-  const createdAt = new Date().toISOString()
-  const slug = slugify(titre).slice(0, 50) + '_' + Date.now()
+  const now = new Date()
+  const ts = Date.now()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const datePart = [
+    now.getFullYear(),
+    pad(now.getMonth() + 1),
+    pad(now.getDate()),
+    pad(now.getHours()),
+    pad(now.getMinutes()),
+    pad(now.getSeconds())
+  ].join('-')
+  const id = `${datePart}_${ts}`
+  const createdAt = now.toISOString()
+  const slug = slugify(titre).slice(0, 50) + '_' + ts
 
   const payload = {
+    id,
     titre,
     sousTitre,
     article,
     description,
+    categorie,
     visuel: visuelPath,
     createdAt
   }
