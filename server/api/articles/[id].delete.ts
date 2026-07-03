@@ -4,8 +4,10 @@ export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, message: 'ID manquant' })
 
-  const article = await Article.findOne({ id }).select('-_id -__v').lean()
-  if (!article) throw createError({ statusCode: 404, message: `Article "${id}" introuvable` })
+  const result = await Article.deleteOne({ id })
+  if (result.deletedCount === 0) {
+    throw createError({ statusCode: 404, message: `Article "${id}" introuvable` })
+  }
 
-  return article
+  return { success: true, id }
 })

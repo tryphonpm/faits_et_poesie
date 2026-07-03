@@ -65,11 +65,12 @@ async function submit() {
   try {
     const res = await $fetch('/api/articles/create', { method: 'POST', body: form })
     status.value = 'success'
-    message.value = `Article enregistré : ${(res as any).file}`
+    message.value = `Article enregistré : ${(res as { id: string }).id}`
     titre.value = ''
     sousTitre.value = ''
     article.value = ''
     description.value = ''
+    categorie.value = ''
     visuelFile.value = null
     visuelPreview.value = null
   } catch (err: any) {
@@ -191,6 +192,21 @@ async function submit() {
             placeholder="Courte description (SEO, résumé…)"
             class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           />
+        </div>
+
+        <!-- Catégorie -->
+        <div>
+          <label class="mb-1 block text-sm font-semibold text-slate-700" for="categorie">
+            Catégorie
+          </label>
+          <select
+            id="categorie"
+            v-model="categorie"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+          >
+            <option value="">— Sélectionner une catégorie —</option>
+            <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+          </select>
         </div>
 
         <!-- Feedback -->

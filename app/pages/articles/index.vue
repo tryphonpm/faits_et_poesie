@@ -10,9 +10,11 @@ interface ArticleSummary {
 
 useHead({ title: 'Articles' })
 
-const { data: articles, status } = await useFetch<ArticleSummary[]>('/api/articles', {
+const { data: articles, status, refresh } = await useFetch<ArticleSummary[]>('/api/articles', {
   default: () => [] as ArticleSummary[]
 })
+
+const deletingId = ref<string | null>(null)
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
@@ -23,6 +25,20 @@ function formatDate(iso: string | null) {
     hour: '2-digit',
     minute: '2-digit'
   }).format(new Date(iso))
+}
+
+async function deleteArticle(article: ArticleSummary) {
+  if (!confirm(`Supprimer « ${article.titre} » ?`)) return
+
+  deletingId.value = article.id
+  try {
+    await $fetch(`/api/articles/${encodeURIComponent(article.id)}`, { method: 'DELETE' })
+    await refresh()
+  } catch (err: any) {
+    alert(err?.data?.message ?? 'Suppression impossible.')
+  } finally {
+    deletingId.value = null
+  }
 }
 </script>
 
@@ -69,12 +85,22 @@ function formatDate(iso: string | null) {
             </p>
           </div>
 
-          <NuxtLink
-            :to="`/articles/${article.id}`"
-            class="shrink-0 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
-          >
-            Voir →
-          </NuxtLink>
+          <div class="flex shrink-0 items-center gap-2">
+            <NuxtLink
+              :to="`/articles/${encodeURIComponent(article.id)}`"
+              class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Voir →
+            </NuxtLink>
+            <button
+              type="button"
+              class="rounded-lg px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="deletingId === article.id"
+              @click="deleteArticle(article)"
+            >
+              {{ deletingId === article.id ? '…' : 'Supprimer' }}
+            </button>
+          </div>
         </li>
       </ul>
     </div>
