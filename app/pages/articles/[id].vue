@@ -32,6 +32,18 @@ function formatDate(iso: string | null) {
     minute: '2-digit'
   }).format(new Date(iso))
 }
+
+const copied = ref(false)
+
+async function copyId(value: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch {
+    copied.value = false
+  }
+}
 </script>
 
 <template>
@@ -85,6 +97,15 @@ function formatDate(iso: string | null) {
               {{ article.categorie }}
             </span>
           </div>
+          <button
+            type="button"
+            class="mt-2 inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-1.5 font-mono text-xs text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+            :title="copied ? 'Copié !' : 'Copier l\'id'"
+            @click="copyId(article.id)"
+          >
+            <span>{{ article.id }}</span>
+            <span class="text-[10px] uppercase tracking-wide">{{ copied ? 'Copié' : 'Copier' }}</span>
+          </button>
           <h1 class="mt-2 text-4xl font-bold leading-tight tracking-tight text-slate-900">
             {{ article.titre }}
           </h1>
