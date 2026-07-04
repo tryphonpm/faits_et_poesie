@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Daily Chronicle</title>
+    <style>
+        /* --- RESET & FONTS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #fcfbf7; /* Slight yellow/aging paper tint */
+            color: #111111;
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* --- CONTAINER --- */
+        .newspaper-container {
+            max-width: 1200px;
+            width: 100%;
+            background-color: #fcfbf7;
+            padding: 20px;
+            border: 1px solid #d3d3d3;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- MASTHEAD (TOP SECTION) --- */
+        header {
+            text-align: center;
+            border-bottom: 4px double #111;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .weather-price {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            padding: 5px 0;
+            border-bottom: 1px solid #111;
+        }
+
+        .masthead-title {
+            font-family: 'Playfair Display', 'Times New Roman', Times, serif;
+            font-size: 4.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin: 10px 0;
+            line-height: 1;
+        }
+
+        .meta-bar {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #111;
+            border-bottom: 1px solid #111;
+            padding: 6px 0;
+            font-size: 0.85rem;
+            font-style: italic;
+            font-weight: bold;
+        }
+
+        /* --- LAYOUT GRID --- */
+        .main-content {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- HEADLINES & TEXT --- */
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', 'Times New Roman', serif;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .lead-headline {
+            font-size: 3rem;
+            text-align: center;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .sub-headline {
+            font-size: 1.3rem;
+            font-style: italic;
+            text-align: center;
+            color: #444;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+
+        /* Multi-column text layout */
+        .columns-3 {
+            column-count: 3;
+            column-gap: 20px;
+            column-rule: 1px solid #e0e0e0;
+            text-align: justify;
+            text-justify: inter-word;
+        }
+
+        .columns-2 {
+            column-count: 2;
+            column-gap: 15px;
+            column-rule: 1px solid #e0e0e0;
+            text-align: justify;
+        }
+
+        @media (max-width: 600px) {
+            .columns-3, .columns-2 {
+                column-count: 1;
+            }
+        }
+
+        p {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            text-indent: 15px;
+        }
+
+        p:first-of-type {
+            text-indent: 0; /* Traditional: first paragraph has no indent */
+        }
+
+        /* Drop Cap effect */
+        .drop-cap::first-letter {
+            font-size: 3.5rem;
+            font-weight: bold;
+            float: left;
+            margin-right: 8px;
+            line-height: 0.9;
+            margin-top: 4px;
+        }
+
+        /* --- IMAGES & CAPTIONS --- */
+        .image-wrapper {
+            margin: 15px 0;
+            border: 1px solid #111;
+            padding: 4px;
+            background-color: #fff;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%) contrast(120%); /* Gives it that raw newsprint look */
+            display: block;
+        }
+
+        .caption {
+            font-size: 0.8rem;
+            font-style: italic;
+            margin-top: 5px;
+            padding: 0 5px;
+            line-height: 1.3;
+        }
+
+        /* --- SIDEBAR / SECONDARY STORIES --- */
+        .sidebar {
+            border-left: 1px solid #111;
+            padding-left: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                border-left: none;
+                border-top: 2px solid #111;
+                padding-left: 0;
+                padding-top: 20px;
+            }
+        }
+
+        .sidebar-story {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed #999;
+        }
+
+        .sidebar-story:last-child {
+            border-bottom: none;
+        }
+
+        .sidebar-headline {
+            font-size: 1.5rem;
+        }
+
+        /* --- ASIDES & ACCENTS --- */
+        .section-divider {
+            border: 0;
+            height: 1px;
+            background: #111;
+            margin: 20px 0;
+        }
+
+        .bold-lead {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="newspaper-container">
+
+    <!-- HEADER SECTION -->
+    <header>
+        <div class="weather-price">
+            <div>Weather: Clear & Crisp</div>
+            <div>Price: Two Cents</div>
+        </div>
+        <h1 class="masthead-title">The Daily Chronicle</h1>
+        <div class="meta-bar">
+            <div>Vol. CXXIV No. 42</div>
+            <div>Saturday, July 4, 2026</div>
+            <div>New York, New York</div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <main class="main-content">
+        
+        <!-- LEFT COLUMN: MAIN STORY -->
+        <section class="left-column">
+            <h2 class="lead-headline">A Monumental Leap Forward for Mankind</h2>
+            <h3 class="sub-headline">Global assembly ratifies historic accord amidst celebration in the streets.</h3>
+            
+            <!-- Main Story Image -->
+            <div class="image-wrapper">
+                <!-- Using a placeholder image; replace 'src' with your actual image path -->
+                <img src="https://picsum.photos/800/450?grayscale" alt="Crowds gathering in celebration">
+                <div class="caption">Crowds gather in the central square early this morning to witness the historic signing. Observers call it the largest peaceful assembly of the modern era.</div>
+            </div>
+
+            <!-- Main Story Columns -->
+            <div class="columns-3">
+                <p class="drop-cap"><span class="bold-lead">In an unprecedented turn</span> of events that caught world leaders by surprise, a sweeping global resolution was finalized late last night. The atmosphere outside the delegation hall was electric, with thousands remaining down the avenues until the final stroke of the pen was announced via telegraph and radio broadcasts.</p>
+                
+                <p>The implications of this treaty are bound to reshape commerce, international transit, and collective industry for the next century. Economists are already predicting an immediate stabilization of markets, while local councils are preparing for a massive influx of trade options.</p>
+
+                <p>"We have crossed a threshold from which we cannot, and should not, return," noted Chief Delegate Marcus Vance during his brief address on the courthouse steps. Vance, visibly exhausted but triumphant, waved to the roaring crowds before being whisked away by security details.</p>
+
+                <p>Opposing factions, who had held out for weeks over minor regulatory disputes, ultimately conceded when the public pressure reached a fever pitch. Leaflets had been distributed across the major sectors calling for a swift resolution to the gridlock.</p>
+                
+                <p>Details regarding the phased rollout of the new policies are expected to be published in tomorrow’s evening edition. For now, municipalities have declared a public holiday, and municipal offices will remain closed through the weekend to allow for celebrations.</p>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: SIDEBAR / SECONDARY STORIES -->
+        <aside class="sidebar">
+            
+            <div class="sidebar-story">
+                <h4 class="sidebar-headline">Local Markets Reach All-Time Highs</h4>
+                <div class="columns-1">
+                    <p>Trading floors experienced unprecedented volume today as news of the accord spread. Commodities skyrocketed within the first hour of the opening bell, forcing brokers to clear a backlog of orders manually.</p>
+                </div>
+            </div>
+
+            <div class="sidebar-story">
+                <h4 class="sidebar-headline">New Steam-Engine Record Logged</h4>
+                <div class="image-wrapper">
+                    <img src="https://picsum.photos/300/200?grayscale" alt="Locomotive engine">
+                    <div class="caption">The Trans-Continental No. 9 at full steam.</div>
+                </div>
+                <div class="columns-1">
+                    <p>Engineers out west have shattered the previous speed record, completing the northern run in just under forty-eight hours. The feat marks a triumph for modern coal filtration systems.</p>
+                </div>
+            </div>
+
+            <div class="sidebar-story">
+                <h4 class="sidebar-headline">Editorial: The Road Ahead</h4>
+                <p>It is easy to get swept up in the romanticism of the hour, but sober minds must prevail. The ink is dry, yet the true labor of implementing these grand designs begins at dawn. We must remain vigilant.</p>
+            </div>
+
+        </aside>
+
+    </main>
+
+    <hr class="section-divider">
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+    "nb_colonnes": 3,
+    "section": 1,
+    "titre": "Ceci est un titre",
+    "sous_titre": "Ceci est un sous-titre",
+    "date": "2026-01-01",
+    "article": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    "categorie": "Fait divers"
+}

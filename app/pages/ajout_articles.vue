@@ -1,6 +1,8 @@
 <script setup lang="ts">
 useHead({ title: 'Ajouter un article' })
 
+const router = useRouter()
+
 const { data: categories } = await useFetch<string[]>('/api/categories', { default: () => [] })
 
 const titre = ref('')
@@ -63,16 +65,8 @@ async function submit() {
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
 
   try {
-    const res = await $fetch('/api/articles/create', { method: 'POST', body: form })
-    status.value = 'success'
-    message.value = `Article enregistré : ${(res as { id: string }).id}`
-    titre.value = ''
-    sousTitre.value = ''
-    article.value = ''
-    description.value = ''
-    categorie.value = ''
-    visuelFile.value = null
-    visuelPreview.value = null
+    await $fetch('/api/articles/create', { method: 'POST', body: form })
+    await router.push('/articles')
   } catch (err: any) {
     status.value = 'error'
     message.value = err?.data?.message ?? 'Une erreur est survenue.'
