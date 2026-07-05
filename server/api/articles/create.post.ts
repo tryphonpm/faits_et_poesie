@@ -18,6 +18,11 @@ export default defineEventHandler(async (event) => {
 
   if (!titre.trim()) throw createError({ statusCode: 400, message: 'Le titre est obligatoire' })
 
+  const numero = Number(get('numero'))
+  if (!Number.isInteger(numero) || numero < 1) {
+    throw createError({ statusCode: 400, message: 'Le numéro de bulletin est obligatoire (entier ≥ 1).' })
+  }
+
   const visuelsDir = join(process.cwd(), 'public', 'data', 'visuels')
   await mkdir(visuelsDir, { recursive: true })
 
@@ -46,12 +51,17 @@ export default defineEventHandler(async (event) => {
 
   const payload = {
     id,
+    numero,
     titre,
     sousTitre,
     article,
     description,
     categorie,
     visuel: visuelPath,
+    layout: get('layout') || 'stack',
+    visuelPosition: get('visuel-position') || 'before-article',
+    visuelColonnes: Math.min(5, Math.max(1, Number(get('visuel-colonnes')) || 1)),
+    visuelAlign: get('visuel-align') === 'left' ? 'left' : 'right',
     createdAt
   }
 

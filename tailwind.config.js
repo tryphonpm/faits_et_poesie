@@ -35,7 +35,8 @@ export default {
       },
       fontFamily: {
         display: ['"Playfair Display"', 'Georgia', 'Times New Roman', 'serif'],
-        body: ['Georgia', 'Times New Roman', 'serif']
+        body: ['Georgia', 'Times New Roman', 'serif'],
+        ornamenta: ['"Ornamenta Monumenta"', 'serif']
       },
       maxWidth: {
         newspaper: '75rem'

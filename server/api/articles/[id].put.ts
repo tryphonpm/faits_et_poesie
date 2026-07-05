@@ -25,6 +25,11 @@ export default defineEventHandler(async (event) => {
 
   if (!titre.trim()) throw createError({ statusCode: 400, message: 'Le titre est obligatoire' })
 
+  const numero = Number(get('numero'))
+  if (!Number.isInteger(numero) || numero < 1) {
+    throw createError({ statusCode: 400, message: 'Le numéro de bulletin est obligatoire (entier ≥ 1).' })
+  }
+
   let visuelPath = existing.visuel
 
   if (visuelPart?.data && visuelPart.filename) {
@@ -40,11 +45,24 @@ export default defineEventHandler(async (event) => {
   }
 
   existing.titre = titre
+  existing.numero = numero
   existing.sousTitre = sousTitre
   existing.article = article
   existing.description = description
   existing.categorie = categorie
   existing.visuel = visuelPath
+
+  const layout = get('layout')
+  if (layout === 'stack' || layout === 'float' || layout === 'columns') existing.layout = layout
+  const visuelPosition = get('visuel-position')
+  if (visuelPosition === 'before-article' || visuelPosition === 'after-article') {
+    existing.visuelPosition = visuelPosition
+  }
+  const visuelColonnes = Number(get('visuel-colonnes'))
+  if (visuelColonnes >= 1 && visuelColonnes <= 5) existing.visuelColonnes = visuelColonnes
+  const visuelAlign = get('visuel-align')
+  if (visuelAlign === 'left' || visuelAlign === 'right') existing.visuelAlign = visuelAlign
+
   await existing.save()
 
   return { success: true, id, visuel: visuelPath }

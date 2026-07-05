@@ -1,6 +1,7 @@
 <script setup lang="ts">
 interface Article {
   id: string
+  numero?: number
   titre: string
   sousTitre: string
   article: string
@@ -95,6 +96,14 @@ async function copyId(value: string) {
               class="rounded-full bg-slate-100 px-3 py-0.5 text-xs font-medium text-slate-600"
             >
               {{ article.categorie }}
+            </span>
+            <span
+              class="rounded-full px-3 py-0.5 text-xs font-medium"
+              :class="article.numero != null
+                ? 'bg-emerald-50 text-emerald-700'
+                : 'bg-slate-100 text-slate-400'"
+            >
+              Bulletin n°{{ article.numero ?? '—' }}
             </span>
           </div>
           <button

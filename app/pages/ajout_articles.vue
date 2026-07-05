@@ -6,6 +6,7 @@ const router = useRouter()
 const { data: categories } = await useFetch<string[]>('/api/categories', { default: () => [] })
 
 const titre = ref('')
+const numero = ref<number | null>(null)
 const sousTitre = ref('')
 const article = ref('')
 const description = ref('')
@@ -13,6 +14,11 @@ const categorie = ref('')
 const visuelFile = ref<File | null>(null)
 const visuelPreview = ref<string | null>(null)
 const isDragging = ref(false)
+
+const layout = ref<'stack' | 'float' | 'columns'>('stack')
+const visuelPosition = ref<'before-article' | 'after-article'>('before-article')
+const visuelColonnes = ref(1)
+const visuelAlign = ref<'left' | 'right'>('right')
 
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const message = ref('')
@@ -53,15 +59,26 @@ async function submit() {
     return
   }
 
+  if (numero.value === null || !Number.isInteger(numero.value) || numero.value < 1) {
+    status.value = 'error'
+    message.value = 'Le numéro de bulletin est obligatoire (entier ≥ 1).'
+    return
+  }
+
   status.value = 'loading'
   message.value = ''
 
   const form = new FormData()
+  form.append('numero', String(numero.value))
   form.append('titre', titre.value)
   form.append('sous-titre', sousTitre.value)
   form.append('article', article.value)
   form.append('description', description.value)
   form.append('categorie', categorie.value)
+  form.append('layout', layout.value)
+  form.append('visuel-position', visuelPosition.value)
+  form.append('visuel-colonnes', String(visuelColonnes.value))
+  form.append('visuel-align', visuelAlign.value)
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
 
   try {
@@ -82,17 +99,33 @@ async function submit() {
       </h1>
 
       <form class="flex flex-col gap-6" @submit.prevent="submit">
+        <!-- Numéro de bulletin -->
+        <div>
+          <label class="mb-1 block text-sm font-semibold text-slate-700" for="numero">
+            Numéro de bulletin <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="numero"
+            v-model.number="numero"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Ex. 20"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+          />
+        </div>
+
         <!-- Titre -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700" for="titre">
             Titre <span class="text-red-500">*</span>
           </label>
-          <input
+          <textarea
             id="titre"
             v-model="titre"
-            type="text"
+            rows="2"
             placeholder="Titre de l'article"
-            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+            class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           />
         </div>
 
@@ -101,12 +134,12 @@ async function submit() {
           <label class="mb-1 block text-sm font-semibold text-slate-700" for="sous-titre">
             Sous-titre
           </label>
-          <input
+          <textarea
             id="sous-titre"
             v-model="sousTitre"
-            type="text"
+            rows="2"
             placeholder="Sous-titre de l'article"
-            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+            class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           />
         </div>
 
@@ -187,6 +220,71 @@ async function submit() {
             class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           />
         </div>
+
+        <!-- Mise en page -->
+        <fieldset class="rounded-xl border border-slate-200 bg-white p-4">
+          <legend class="px-1 text-sm font-semibold text-slate-700">Mise en page</legend>
+
+          <div class="mt-2 flex flex-col gap-4">
+            <div>
+              <label class="mb-1 block text-sm font-medium text-slate-600" for="layout">
+                Mode d'affichage
+              </label>
+              <select
+                id="layout"
+                v-model="layout"
+                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              >
+                <option value="stack">Bloc (visuel pleine largeur)</option>
+                <option value="float">Flottant (texte autour du visuel)</option>
+                <option value="columns">Colonnes (texte multi-colonnes)</option>
+              </select>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="visuel-position">
+                  Position du visuel
+                </label>
+                <select
+                  id="visuel-position"
+                  v-model="visuelPosition"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option value="before-article">Avant le texte</option>
+                  <option value="after-article">Après le texte</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="visuel-colonnes">
+                  Largeur du visuel (colonnes)
+                </label>
+                <select
+                  id="visuel-colonnes"
+                  v-model.number="visuelColonnes"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-if="layout === 'float'">
+              <label class="mb-1 block text-sm font-medium text-slate-600" for="visuel-align">
+                Alignement du visuel flottant
+              </label>
+              <select
+                id="visuel-align"
+                v-model="visuelAlign"
+                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              >
+                <option value="left">Gauche</option>
+                <option value="right">Droite</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
 
         <!-- Catégorie -->
         <div>

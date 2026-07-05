@@ -1,12 +1,17 @@
 <script setup lang="ts">
 interface Article {
   id: string
+  numero?: number
   titre: string
   sousTitre: string
   article: string
   description: string
   categorie: string
   visuel: string
+  layout?: 'stack' | 'float' | 'columns'
+  visuelPosition?: 'before-article' | 'after-article'
+  visuelColonnes?: number
+  visuelAlign?: 'left' | 'right'
   createdAt: string | null
 }
 
@@ -24,6 +29,7 @@ useHead(() => ({
 }))
 
 const titre = ref('')
+const numero = ref<number | null>(null)
 const sousTitre = ref('')
 const article = ref('')
 const description = ref('')
@@ -33,6 +39,11 @@ const visuelPreview = ref<string | null>(null)
 const visuelRemoved = ref(false)
 const isDragging = ref(false)
 
+const layout = ref<'stack' | 'float' | 'columns'>('stack')
+const visuelPosition = ref<'before-article' | 'after-article'>('before-article')
+const visuelColonnes = ref(1)
+const visuelAlign = ref<'left' | 'right'>('right')
+
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const message = ref('')
 
@@ -41,10 +52,15 @@ const ACCEPTED = ['image/png', 'image/jpeg', 'image/svg+xml']
 watch(initial, (data) => {
   if (!data) return
   titre.value = data.titre
+  numero.value = data.numero ?? null
   sousTitre.value = data.sousTitre
   article.value = data.article
   description.value = data.description
   categorie.value = data.categorie
+  layout.value = data.layout ?? 'stack'
+  visuelPosition.value = data.visuelPosition ?? 'before-article'
+  visuelColonnes.value = data.visuelColonnes ?? 1
+  visuelAlign.value = data.visuelAlign ?? 'right'
   visuelPreview.value = data.visuel || null
   visuelFile.value = null
   visuelRemoved.value = false
@@ -86,15 +102,26 @@ async function submit() {
     return
   }
 
+  if (numero.value === null || !Number.isInteger(numero.value) || numero.value < 1) {
+    status.value = 'error'
+    message.value = 'Le numéro de bulletin est obligatoire (entier ≥ 1).'
+    return
+  }
+
   status.value = 'loading'
   message.value = ''
 
   const form = new FormData()
+  form.append('numero', String(numero.value))
   form.append('titre', titre.value)
   form.append('sous-titre', sousTitre.value)
   form.append('article', article.value)
   form.append('description', description.value)
   form.append('categorie', categorie.value)
+  form.append('layout', layout.value)
+  form.append('visuel-position', visuelPosition.value)
+  form.append('visuel-colonnes', String(visuelColonnes.value))
+  form.append('visuel-align', visuelAlign.value)
   if (visuelRemoved.value) form.append('supprimer-visuel', 'true')
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
 
@@ -139,14 +166,29 @@ async function submit() {
 
         <form class="flex flex-col gap-6" @submit.prevent="submit">
           <div>
+            <label class="mb-1 block text-sm font-semibold text-slate-700" for="numero">
+              Numéro de bulletin <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="numero"
+              v-model.number="numero"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="Ex. 20"
+              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+            />
+          </div>
+
+          <div>
             <label class="mb-1 block text-sm font-semibold text-slate-700" for="titre">
               Titre <span class="text-red-500">*</span>
             </label>
-            <input
+            <textarea
               id="titre"
               v-model="titre"
-              type="text"
-              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              rows="2"
+              class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
             />
           </div>
 
@@ -154,11 +196,11 @@ async function submit() {
             <label class="mb-1 block text-sm font-semibold text-slate-700" for="sous-titre">
               Sous-titre
             </label>
-            <input
+            <textarea
               id="sous-titre"
               v-model="sousTitre"
-              type="text"
-              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              rows="2"
+              class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
             />
           </div>
 
@@ -233,6 +275,70 @@ async function submit() {
               class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
             />
           </div>
+
+          <fieldset class="rounded-xl border border-slate-200 bg-white p-4">
+            <legend class="px-1 text-sm font-semibold text-slate-700">Mise en page</legend>
+
+            <div class="mt-2 flex flex-col gap-4">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="layout">
+                  Mode d'affichage
+                </label>
+                <select
+                  id="layout"
+                  v-model="layout"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option value="stack">Bloc (visuel pleine largeur)</option>
+                  <option value="float">Flottant (texte autour du visuel)</option>
+                  <option value="columns">Colonnes (texte multi-colonnes)</option>
+                </select>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-slate-600" for="visuel-position">
+                    Position du visuel
+                  </label>
+                  <select
+                    id="visuel-position"
+                    v-model="visuelPosition"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  >
+                    <option value="before-article">Avant le texte</option>
+                    <option value="after-article">Après le texte</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="mb-1 block text-sm font-medium text-slate-600" for="visuel-colonnes">
+                    Largeur du visuel (colonnes)
+                  </label>
+                  <select
+                    id="visuel-colonnes"
+                    v-model.number="visuelColonnes"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  >
+                    <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div v-if="layout === 'float'">
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="visuel-align">
+                  Alignement du visuel flottant
+                </label>
+                <select
+                  id="visuel-align"
+                  v-model="visuelAlign"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option value="left">Gauche</option>
+                  <option value="right">Droite</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
 
           <div>
             <label class="mb-1 block text-sm font-semibold text-slate-700" for="categorie">

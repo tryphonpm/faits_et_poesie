@@ -20,6 +20,11 @@ useHead({ title: 'Accueil' })
         title="Articles"
         description="Consulter la liste des articles disponibles."
       />
+      <CardRedirection
+        to="/publications"
+        title="Publications"
+        description="Consulter la liste des publications disponibles."
+      />
     </div>
   </main>
 </template>

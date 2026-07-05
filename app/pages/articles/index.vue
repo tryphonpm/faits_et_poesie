@@ -1,6 +1,7 @@
 <script setup lang="ts">
 interface ArticleSummary {
   id: string
+  numero?: number | null
   titre: string
   sousTitre: string
   description: string
@@ -8,10 +9,31 @@ interface ArticleSummary {
   createdAt: string | null
 }
 
+interface PublicationSummary {
+  numero: number
+  createdAt: string | null
+}
+
 useHead({ title: 'Articles' })
 
 const { data: articles, status, refresh } = await useFetch<ArticleSummary[]>('/api/articles', {
   default: () => [] as ArticleSummary[]
+})
+
+const { data: publications, status: publicationsStatus } = await useFetch<PublicationSummary[]>('/api/publications', {
+  default: () => [] as PublicationSummary[]
+})
+
+/** '' = articles sans numéro de bulletin (filtre par défaut) */
+const filterKey = ref('')
+
+const filteredArticles = computed(() => {
+  const list = articles.value ?? []
+  if (filterKey.value === '') {
+    return list.filter(article => article.numero == null)
+  }
+  const numero = Number(filterKey.value)
+  return list.filter(article => article.numero === numero)
 })
 
 const deletingId = ref<string | null>(null)
@@ -55,7 +77,29 @@ async function deleteArticle(article: ArticleSummary) {
         </NuxtLink>
       </div>
 
-      <div v-if="status === 'pending'" class="space-y-4">
+      <div class="mb-6 flex flex-wrap items-end gap-3">
+        <div>
+          <label class="mb-1 block text-sm font-semibold text-slate-700" for="filter-numero">
+            Filtrer par bulletin
+          </label>
+          <select
+            id="filter-numero"
+            v-model="filterKey"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+          >
+            <option value="">Sans bulletin</option>
+            <option
+              v-for="publication in publications"
+              :key="publication.numero"
+              :value="String(publication.numero)"
+            >
+              Bulletin n°{{ publication.numero }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div v-if="status === 'pending' || publicationsStatus === 'pending'" class="space-y-4">
         <div
           v-for="i in 3"
           :key="i"
@@ -70,9 +114,16 @@ async function deleteArticle(article: ArticleSummary) {
         Aucun article pour l'instant.
       </p>
 
+      <p
+        v-else-if="!filteredArticles.length"
+        class="rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center text-slate-400"
+      >
+        Aucun article pour ce filtre.
+      </p>
+
       <ul v-else class="flex flex-col gap-4">
         <li
-          v-for="article in articles"
+          v-for="article in filteredArticles"
           :key="article.id"
           class="flex items-center justify-between gap-4 rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-slate-200 transition hover:ring-emerald-300"
         >
