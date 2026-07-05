@@ -10,12 +10,12 @@ useHead({ title: 'Faits & Poésie — Maquette grille' })
     meteo="couvert"
   />
 
-  <!-- espagne régularisation -->
-  <Article
-    id="2026-07-03-20-08-19_1783102099422"
+  <!-- Daniil Trifonov -->
+  <Article id="2026-07-05-18-24-00_1783268640315"/>
+    <!-- c'est jamais bien -->
+  <Article id="2026-07-05-12-41-18_1783248078447"/>
+    <!-- mal du transport -->
+  <Article id="2026-07-03-20-08-19_1783102099422"
 
   />
-
-  <Article id="2026-07-05-12-41-18_1783248078447"/>
-
 </template>
