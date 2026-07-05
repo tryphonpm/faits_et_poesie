@@ -47,7 +47,7 @@
   }
 
   .fp-front-header-sub-title {
-    @apply mx-auto mb-2 whitespace-nowrap text-center font-normal italic text-ink-muted;
+    @apply mx-auto mb-2 hidden whitespace-nowrap text-center font-normal italic text-ink-muted md:block;
     font-size: 0.65625rem; /* text-sm (0.875rem) − 25 % */
   }
 
@@ -97,6 +97,22 @@
   .fp-article-description {
     @apply text-xs italic text-ink-faint;
     line-height: 1.0;
+  }
+
+  .fp-article-description--left {
+    @apply !text-left;
+  }
+
+  .fp-article-description--center {
+    @apply !text-center;
+  }
+
+  .fp-article-description--right {
+    @apply !text-right;
+  }
+
+  .fp-article-visuel-description--in-float {
+    @apply block w-full;
   }
 
   .fp-article-corps {
@@ -165,8 +181,9 @@
     @apply m-0;
   }
 
-  .fp-article-visuel-float-wrap img {
-    @apply block w-full grayscale contrast-125;
+  .fp-article-visuel-float-wrap img,
+  .fp-article-visuel-float-wrap video {
+    @apply block w-full bg-black grayscale contrast-125;
   }
 
   .fp-article-visuel-float-wrap--left {
@@ -182,8 +199,18 @@
     /* @apply border border-ink bg-white p-1; */
   }
 
-  .fp-article-visuel img {
-    @apply block w-full grayscale contrast-125;
+  .fp-article-visuel img,
+  .fp-article-visuel video {
+    @apply block w-full bg-black grayscale contrast-125;
+  }
+
+  /* ——— Insert vidéo ——— */
+  .fp-insert-video {
+    @apply col-span-full border-b border-ink pb-2 mb-5 md:pb-2 md:mb-2;
+  }
+
+  .fp-insert-video__player {
+    @apply w-full bg-black grayscale contrast-125;
   }
 
   /* ——— UI application (pages admin) ——— */

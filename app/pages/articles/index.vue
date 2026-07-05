@@ -16,6 +16,9 @@ interface PublicationSummary {
 
 useHead({ title: 'Articles' })
 
+const articlesFilterStore = useArticlesFilterStore()
+const { filterKey } = storeToRefs(articlesFilterStore)
+
 const { data: articles, status, refresh } = await useFetch<ArticleSummary[]>('/api/articles', {
   default: () => [] as ArticleSummary[]
 })
@@ -23,9 +26,6 @@ const { data: articles, status, refresh } = await useFetch<ArticleSummary[]>('/a
 const { data: publications, status: publicationsStatus } = await useFetch<PublicationSummary[]>('/api/publications', {
   default: () => [] as PublicationSummary[]
 })
-
-/** '' = articles sans numéro de bulletin (filtre par défaut) */
-const filterKey = ref('')
 
 const filteredArticles = computed(() => {
   const list = articles.value ?? []

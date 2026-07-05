@@ -8,12 +8,11 @@ useHead({ title: 'Faits & Poésie — Maquette grille' })
   <!-- Ligne 1 : en-tête sur les 5 colonnes (fp-front-header → md:col-span-5) -->
   <FrontHeader
     meteo="ensoleillé"
-    bulletin="9999"
   />
 
   <!-- espagne régularisation -->
   <Article
-    id="999 MAQUETTE"
+    id="MAQUETTE"
     :nb-colonnes="5"
     :nb-rows="1"
     layout="float"

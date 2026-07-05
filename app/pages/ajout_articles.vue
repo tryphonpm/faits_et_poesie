@@ -19,19 +19,36 @@ const layout = ref<'stack' | 'float' | 'columns'>('stack')
 const visuelPosition = ref<'before-article' | 'after-article'>('before-article')
 const visuelColonnes = ref(1)
 const visuelAlign = ref<'left' | 'right'>('right')
+const nbColonnes = ref(1)
+const nbRows = ref(1)
+const titreFontSize = ref('')
+const titreFontSizeCustom = ref('')
+const masquerTitre = ref(false)
+const bordureGauche = ref(false)
+const noLettrine = ref(false)
+const descriptionAlign = ref<'left' | 'center' | 'right'>('right')
+
+const titreFontSizeOptions = [
+  '', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'
+] as const
 
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const message = ref('')
 
-const ACCEPTED = ['image/png', 'image/jpeg', 'image/svg+xml']
+const ACCEPTED_IMAGES = ['image/png', 'image/jpeg', 'image/svg+xml']
+const ACCEPTED_VIDEOS = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']
+const ACCEPTED = [...ACCEPTED_IMAGES, ...ACCEPTED_VIDEOS]
+
+const visuelIsVideo = computed(() => visuelFile.value?.type.startsWith('video/') ?? false)
 
 function handleFile(file: File | null | undefined) {
   if (!file) return
   if (!ACCEPTED.includes(file.type)) {
-    message.value = 'Format non supporté. Utilisez PNG, JPG ou SVG.'
+    message.value = 'Format non supporté. Utilisez PNG, JPG, SVG, MP4, WebM ou MOV.'
     status.value = 'error'
     return
   }
+  if (visuelPreview.value) URL.revokeObjectURL(visuelPreview.value)
   visuelFile.value = file
   visuelPreview.value = URL.createObjectURL(file)
   status.value = 'idle'
@@ -48,6 +65,7 @@ function onDrop(e: DragEvent) {
 }
 
 function removeVisuel() {
+  if (visuelPreview.value) URL.revokeObjectURL(visuelPreview.value)
   visuelFile.value = null
   visuelPreview.value = null
 }
@@ -79,6 +97,13 @@ async function submit() {
   form.append('visuel-position', visuelPosition.value)
   form.append('visuel-colonnes', String(visuelColonnes.value))
   form.append('visuel-align', visuelAlign.value)
+  form.append('nb-colonnes', String(nbColonnes.value))
+  form.append('nb-rows', String(nbRows.value))
+  form.append('titre-font-size', titreFontSizeCustom.value.trim() || titreFontSize.value)
+  form.append('masquer-titre', String(masquerTitre.value))
+  form.append('bordure-gauche', String(bordureGauche.value))
+  form.append('no-lettrine', String(noLettrine.value))
+  form.append('description-align', descriptionAlign.value)
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
 
   try {
@@ -160,7 +185,7 @@ async function submit() {
         <!-- Visuel -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
-            Visuel <span class="text-xs font-normal text-slate-400">(PNG, JPG, SVG)</span>
+            Visuel <span class="text-xs font-normal text-slate-400">(PNG, JPG, SVG, MP4, WebM, MOV)</span>
           </label>
 
           <div
@@ -176,20 +201,28 @@ async function submit() {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2 1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <p class="text-sm text-slate-500">
-              Glissez-déposez une image ou
+              Glissez-déposez une image ou une vidéo, ou
               <span class="font-semibold text-emerald-600">parcourez</span>
             </p>
             <input
               ref="fileInput"
               type="file"
-              accept=".png,.jpg,.jpeg,.svg"
+              accept=".png,.jpg,.jpeg,.svg,.mp4,.webm,.ogg,.mov"
               class="hidden"
               @change="onFileInput"
             />
           </div>
 
           <div v-else class="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <video
+              v-if="visuelIsVideo"
+              :src="visuelPreview"
+              class="max-h-60 w-full bg-black object-contain p-2"
+              controls
+              playsinline
+            />
             <img
+              v-else
               :src="visuelPreview"
               alt="Aperçu du visuel"
               class="max-h-60 w-full object-contain p-2"
@@ -282,6 +315,101 @@ async function submit() {
                 <option value="left">Gauche</option>
                 <option value="right">Droite</option>
               </select>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="nb-colonnes">
+                  Largeur dans la grille (colonnes)
+                </label>
+                <select
+                  id="nb-colonnes"
+                  v-model.number="nbColonnes"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="nb-rows">
+                  Hauteur dans la grille (lignes)
+                </label>
+                <select
+                  id="nb-rows"
+                  v-model.number="nbRows"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="rounded-xl border border-slate-200 bg-white p-4">
+          <legend class="px-1 text-sm font-semibold text-slate-700">Typographie & options</legend>
+
+          <div class="mt-2 flex flex-col gap-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="titre-font-size">
+                  Taille du titre
+                </label>
+                <select
+                  id="titre-font-size"
+                  v-model="titreFontSize"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option value="">Par défaut</option>
+                  <option v-for="size in titreFontSizeOptions.filter(Boolean)" :key="size" :value="size">
+                    {{ size }}
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="titre-font-size-custom">
+                  Taille CSS personnalisée
+                </label>
+                <input
+                  id="titre-font-size-custom"
+                  v-model="titreFontSizeCustom"
+                  type="text"
+                  placeholder="Ex. 1.75rem, 28px"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-slate-600" for="description-align">
+                Alignement de la description
+              </label>
+              <select
+                id="description-align"
+                v-model="descriptionAlign"
+                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              >
+                <option value="right">Droite</option>
+                <option value="left">Gauche</option>
+                <option value="center">Centré</option>
+              </select>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="masquerTitre" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Masquer le titre
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="bordureGauche" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Bordure gauche
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="noLettrine" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Désactiver la lettrine
+              </label>
             </div>
           </div>
         </fieldset>

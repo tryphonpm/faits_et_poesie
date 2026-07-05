@@ -15,6 +15,13 @@ export const Article = defineMongooseModel({
     visuelPosition: { type: String, enum: ['before-article', 'after-article'], default: 'before-article' },
     visuelColonnes: { type: Number, default: 1, min: 1, max: 5 },
     visuelAlign: { type: String, enum: ['left', 'right'], default: 'right' },
+    nbColonnes: { type: Number, default: 1, min: 1, max: 5 },
+    nbRows: { type: Number, default: 1, min: 1, max: 5 },
+    titreFontSize: { type: String, default: '' },
+    masquerTitre: { type: Boolean, default: false },
+    bordureGauche: { type: Boolean, default: false },
+    noLettrine: { type: Boolean, default: false },
+    descriptionAlign: { type: String, enum: ['left', 'center', 'right'], default: 'right' },
     createdAt: { type: String, required: true }
   },
   options: {

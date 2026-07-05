@@ -1,6 +1,5 @@
 import { readMultipartFormData, createError } from 'h3'
-import { writeFile, mkdir } from 'node:fs/promises'
-import { join, extname } from 'node:path'
+import { parseArticleDisplayFields, saveVisuelFile } from '../../utils/articleDisplayFields'
 
 export default defineEventHandler(async (event) => {
   const parts = await readMultipartFormData(event)
@@ -23,17 +22,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Le numéro de bulletin est obligatoire (entier ≥ 1).' })
   }
 
-  const visuelsDir = join(process.cwd(), 'public', 'data', 'visuels')
-  await mkdir(visuelsDir, { recursive: true })
-
-  let visuelPath = ''
-  if (visuelPart?.data && visuelPart.filename) {
-    const ext = extname(visuelPart.filename).toLowerCase()
-    const safeName = slugify(visuelPart.filename.replace(ext, '')) + '_' + Date.now() + ext
-    const dest = join(visuelsDir, safeName)
-    await writeFile(dest, visuelPart.data)
-    visuelPath = `/data/visuels/${safeName}`
-  }
+  const visuelPath = await saveVisuelFile(visuelPart)
 
   const now = new Date()
   const ts = Date.now()
@@ -58,10 +47,7 @@ export default defineEventHandler(async (event) => {
     description,
     categorie,
     visuel: visuelPath,
-    layout: get('layout') || 'stack',
-    visuelPosition: get('visuel-position') || 'before-article',
-    visuelColonnes: Math.min(5, Math.max(1, Number(get('visuel-colonnes')) || 1)),
-    visuelAlign: get('visuel-align') === 'left' ? 'left' : 'right',
+    ...parseArticleDisplayFields(get),
     createdAt
   }
 
@@ -69,13 +55,3 @@ export default defineEventHandler(async (event) => {
 
   return { success: true, id, visuel: visuelPath }
 })
-
-function slugify(str: string): string {
-  return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}

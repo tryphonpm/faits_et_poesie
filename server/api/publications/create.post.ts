@@ -18,8 +18,7 @@ async function createPublicationPage(numero: number) {
   }
 
   const template = await readFile(templatePath, 'utf-8')
-  const content = template.replace('bulletin="9999"', `bulletin="${numero}"`)
-  await writeFile(destPath, content, 'utf-8')
+  await writeFile(destPath, template, 'utf-8')
 }
 
 export default defineEventHandler(async (event) => {

@@ -2,7 +2,10 @@
 export type ArticleLayout = 'stack' | 'float' | 'columns'
 export type VisuelPosition = 'before-article' | 'after-article'
 export type VisuelAlign = 'left' | 'right'
-export type TitreFontSize = 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | '8xl' | '9xl'
+export type DescriptionAlign = 'left' | 'center' | 'right'
+export type TitreFontSize =
+  | 'xs' | 'sm' | 'base'
+  | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | '8xl' | '9xl'
 
 /** Schéma aligné sur server/models/Article.ts (collection articles) */
 export interface ArticleDocument {
@@ -17,6 +20,13 @@ export interface ArticleDocument {
   visuelPosition: VisuelPosition
   visuelColonnes: number
   visuelAlign: VisuelAlign
+  nbColonnes: number
+  nbRows: number
+  titreFontSize: string
+  masquerTitre: boolean
+  bordureGauche: boolean
+  noLettrine: boolean
+  descriptionAlign: DescriptionAlign
   createdAt: string
 }
 
@@ -28,21 +38,36 @@ const props = withDefaults(defineProps<{
   visuelPosition?: VisuelPosition
   visuelColonnes?: number
   visuelAlign?: VisuelAlign
-  /** Taille du titre : token Tailwind (ex. `3xl`) ou valeur CSS (`1.75rem`, `28px`) */
+  /** Taille du titre : token Tailwind (`xs`, `sm`, `3xl`…) ou valeur CSS (`1.75rem`, `28px`) */
   titreFontSize?: TitreFontSize | string
-  /** Masque l'affichage du titre */
-  masquerTitre?: boolean
-  /** Ajoute une bordure gauche à l'article */
-  bordureGauche?: boolean
-  /** Désactive la lettrine sur le corps de l'article */
-  noLettrine?: boolean
+  /** Masque complètement l'affichage du titre (`null` = valeur en base) */
+  masquerTitre?: boolean | null
+  /** Ajoute une bordure gauche à l'article (`null` = valeur en base) */
+  bordureGauche?: boolean | null
+  /** Désactive la lettrine sur le corps de l'article (`null` = valeur en base) */
+  noLettrine?: boolean | null
+  /** Alignement de la description (`null` = valeur en base) */
+  descriptionAlign?: DescriptionAlign | null
 }>(), {
-  nbColonnes: 1,
-  nbRows: 1,
-  masquerTitre: false,
-  bordureGauche: false,
-  noLettrine: false
+  masquerTitre: null,
+  bordureGauche: null,
+  noLettrine: null,
+  descriptionAlign: null
 })
+
+function propBoolean(prop: boolean | null | undefined, dbValue?: boolean) {
+  if (prop !== null && prop !== undefined) return prop
+  return dbValue ?? false
+}
+
+function propDescriptionAlign(
+  prop: DescriptionAlign | null | undefined,
+  dbValue?: DescriptionAlign
+): DescriptionAlign {
+  if (prop !== null && prop !== undefined) return prop
+  if (dbValue === 'left' || dbValue === 'center' || dbValue === 'right') return dbValue
+  return 'right'
+}
 
 const metaFields = ['categorie', 'titre', 'sousTitre'] as const
 type MetaKey = typeof metaFields[number]
@@ -85,7 +110,16 @@ const textColumnsClasses: Record<number, string> = {
   5: 'columns-1 md:columns-5'
 }
 
+const descriptionAlignClasses: Record<DescriptionAlign, string> = {
+  left: 'fp-article-description--left',
+  center: 'fp-article-description--center',
+  right: 'fp-article-description--right'
+}
+
 const titreFontSizeClasses: Record<TitreFontSize, string> = {
+  xs: '!text-xs',
+  sm: '!text-sm',
+  base: '!text-base',
   lg: '!text-lg',
   xl: '!text-xl',
   '2xl': '!text-2xl',
@@ -102,26 +136,13 @@ function isCssFontSize(value: string): boolean {
   return /^\d+(\.\d+)?(px|rem|em|%)$/.test(value) || value.startsWith('clamp(')
 }
 
-function metaFieldClass(key: MetaKey): string | string[] {
-  if (key !== 'titre' || !props.titreFontSize) return fieldClasses[key]
-  const token = props.titreFontSize as TitreFontSize
-  if (titreFontSizeClasses[token]) {
-    return [fieldClasses.titre, titreFontSizeClasses[token]]
-  }
-  return fieldClasses.titre
-}
-
-const titreStyle = computed(() => {
-  const size = props.titreFontSize
-  if (!size || titreFontSizeClasses[size as TitreFontSize]) return undefined
-  if (isCssFontSize(size)) return { fontSize: size }
-  return undefined
-})
-
 const { data: fetched, status, error } = await useAsyncData(
   () => `article-component-${props.id}`,
   () => $fetch<ArticleDocument>(`/api/articles/${encodeURIComponent(props.id)}`),
-  { watch: [() => props.id] }
+  {
+    watch: [() => props.id],
+    getCachedData: () => undefined
+  }
 )
 
 const data = computed(() => fetched.value ?? null)
@@ -142,28 +163,65 @@ const effectiveVisuelAlign = computed<VisuelAlign>(() =>
   props.visuelAlign ?? data.value?.visuelAlign ?? 'right'
 )
 
+const effectiveNbColonnes = computed(() => props.nbColonnes ?? data.value?.nbColonnes ?? 1)
+const effectiveNbRows = computed(() => props.nbRows ?? data.value?.nbRows ?? 1)
+const effectiveTitreFontSize = computed(() => props.titreFontSize ?? data.value?.titreFontSize ?? '')
+const effectiveMasquerTitre = computed(() => propBoolean(props.masquerTitre, data.value?.masquerTitre))
+const effectiveBordureGauche = computed(() => propBoolean(props.bordureGauche, data.value?.bordureGauche))
+const effectiveNoLettrine = computed(() => propBoolean(props.noLettrine, data.value?.noLettrine))
+const effectiveDescriptionAlign = computed<DescriptionAlign>(() =>
+  propDescriptionAlign(props.descriptionAlign, data.value?.descriptionAlign)
+)
+
+const descriptionClass = computed(() => [
+  fieldClasses.description,
+  descriptionAlignClasses[effectiveDescriptionAlign.value]
+])
+
+const descriptionStyle = computed(() => ({
+  textAlign: effectiveDescriptionAlign.value
+}))
+
+function metaFieldClass(key: MetaKey): string | string[] {
+  if (key !== 'titre' || !effectiveTitreFontSize.value) return fieldClasses[key]
+  const token = effectiveTitreFontSize.value as TitreFontSize
+  if (titreFontSizeClasses[token]) {
+    return [fieldClasses.titre, titreFontSizeClasses[token]]
+  }
+  return fieldClasses.titre
+}
+
+const titreStyle = computed(() => {
+  const size = effectiveTitreFontSize.value
+  if (!size || titreFontSizeClasses[size as TitreFontSize]) return undefined
+  if (isCssFontSize(size)) return { fontSize: size }
+  return undefined
+})
+
 const isFloatLayout = computed(() => effectiveLayout.value === 'float')
 const isColumnsLayout = computed(() => effectiveLayout.value === 'columns')
 
-const colSpanClass = computed(() => colSpanClasses[props.nbColonnes] ?? colSpanClasses[1])
-const rowSpanClass = computed(() => rowSpanClasses[props.nbRows] ?? rowSpanClasses[1])
+const colSpanClass = computed(() => colSpanClasses[effectiveNbColonnes.value] ?? colSpanClasses[1])
+const rowSpanClass = computed(() => rowSpanClasses[effectiveNbRows.value] ?? rowSpanClasses[1])
 
 const articleRootClass = computed(() => [
   colSpanClass.value,
   rowSpanClass.value,
-  props.bordureGauche ? 'fp-article--bordure-gauche' : null
+  effectiveBordureGauche.value ? 'fp-article--bordure-gauche' : null
 ])
 
-function showMetaField(key: MetaKey): boolean {
-  if (key === 'titre' && props.masquerTitre) return false
-  return !!data.value?.[key]
-}
+const visibleMetaFields = computed(() =>
+  metaFields.filter((key) => {
+    if (key === 'titre' && effectiveMasquerTitre.value) return false
+    return !!data.value?.[key]
+  })
+)
 
 const articleCorpsClass = computed(() => {
   const classes = ['fp-article-corps', 'fp-article-corps--multicol']
-  if (!props.noLettrine) classes.push('fp-article-lettrine')
+  if (!effectiveNoLettrine.value) classes.push('fp-article-lettrine')
   if (isColumnsLayout.value || effectiveLayout.value === 'stack') {
-    classes.push(textColumnsClasses[props.nbColonnes] ?? textColumnsClasses[1]!)
+    classes.push(textColumnsClasses[effectiveNbColonnes.value] ?? textColumnsClasses[1]!)
   }
   return classes
 })
@@ -179,7 +237,7 @@ const articleCorpsClass = computed(() => {
  */
 const floatArticleCorpsClass = computed(() => {
   const classes = ['fp-article-corps', 'fp-article-corps--float']
-  if (!props.noLettrine) classes.push('fp-article-lettrine')
+  if (!effectiveNoLettrine.value) classes.push('fp-article-lettrine')
   return classes
 })
 
@@ -190,7 +248,7 @@ const visuelFloatWrapAlignClass = computed(() =>
 )
 
 const visuelWidthStyle = computed(() => {
-  const ratio = Math.min(effectiveVisuelColonnes.value / props.nbColonnes, 1)
+  const ratio = Math.min(effectiveVisuelColonnes.value / effectiveNbColonnes.value, 1)
   return { '--fp-visuel-width': `${ratio * 100}%` } as Record<string, string>
 })
 
@@ -218,6 +276,11 @@ const showFloatVisuel = computed(() =>
   && isFloatLayout.value
   && effectiveVisuelPosition.value === 'before-article'
 )
+
+const isVideoVisuel = computed(() => {
+  const src = data.value?.visuel ?? ''
+  return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(src)
+})
 </script>
 
 <template>
@@ -234,24 +297,31 @@ const showFloatVisuel = computed(() =>
     </p>
 
     <template v-else>
-      <template v-for="key in metaFields" :key="key">
+      <template v-for="key in visibleMetaFields" :key="key">
         <component
           :is="fieldTags[key]"
-          v-if="showMetaField(key)"
           :class="metaFieldClass(key)"
           :style="key === 'titre' ? titreStyle : undefined"
         >
-          {{ data[key] }}
+          {{ data![key] }}
         </component>
       </template>
 
       <!-- stack / columns : visuel bloc avant -->
       <figure v-if="showBlockVisuelBefore" class="fp-article-visuel">
-        <img :src="data.visuel" :alt="data.titre">
+        <video
+          v-if="isVideoVisuel"
+          :src="data.visuel"
+          controls
+          playsinline
+          preload="metadata"
+        />
+        <img v-else :src="data.visuel" :alt="data.titre">
         <figcaption
           v-if="showVisuelDescription"
           class="fp-article-visuel-description"
-          :class="fieldClasses.description"
+          :class="descriptionClass"
+          :style="descriptionStyle"
         >
           {{ data.description }}
         </figcaption>
@@ -274,18 +344,26 @@ const showFloatVisuel = computed(() =>
             :style="visuelWidthStyle"
           >
             <figure class="fp-article-visuel-float-wrap__figure">
-              <img :src="data.visuel" :alt="data.titre">
+              <video
+                v-if="isVideoVisuel"
+                :src="data.visuel"
+                controls
+                playsinline
+                preload="metadata"
+              />
+              <img v-else :src="data.visuel" :alt="data.titre">
             </figure>
             <figcaption
               v-if="showVisuelDescription"
-              class="fp-article-visuel-description"
-              :class="fieldClasses.description"
+              class="fp-article-visuel-description fp-article-visuel-description--in-float"
+              :class="descriptionClass"
+              :style="descriptionStyle"
             >
               {{ data.description }}
             </figcaption>
           </div>
 
-          <p v-if="showStandaloneDescription" :class="fieldClasses.description">
+          <p v-if="showStandaloneDescription" :class="descriptionClass" :style="descriptionStyle">
             {{ data.description }}
           </p>
 
@@ -297,7 +375,7 @@ const showFloatVisuel = computed(() =>
 
       <!-- stack / columns : description (sans visuel) + texte colonné -->
       <template v-else>
-        <p v-if="showStandaloneDescription" :class="fieldClasses.description">
+        <p v-if="showStandaloneDescription" :class="descriptionClass" :style="descriptionStyle">
           {{ data.description }}
         </p>
 
@@ -308,11 +386,19 @@ const showFloatVisuel = computed(() =>
 
       <!-- visuel bloc après (stack / columns / float+after) -->
       <figure v-if="showBlockVisuelAfter" class="fp-article-visuel">
-        <img :src="data.visuel" :alt="data.titre">
+        <video
+          v-if="isVideoVisuel"
+          :src="data.visuel"
+          controls
+          playsinline
+          preload="metadata"
+        />
+        <img v-else :src="data.visuel" :alt="data.titre">
         <figcaption
           v-if="showVisuelDescription"
           class="fp-article-visuel-description"
-          :class="fieldClasses.description"
+          :class="descriptionClass"
+          :style="descriptionStyle"
         >
           {{ data.description }}
         </figcaption>

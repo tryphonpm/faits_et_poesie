@@ -7,14 +7,20 @@ const SUB_TITLE_ATTRIBUTION = ', Paul Valéry'
 
 const props = withDefaults(defineProps<{
   meteo?: string
-  bulletin?: string
   metaCenter?: string
   metaRight?: string
 }>(), {
   meteo: 'clair',
-  bulletin: '3',
   metaCenter: '',
   metaRight: ''
+})
+
+const route = useRoute()
+
+/** Numéro de bulletin = nom du fichier page (ex. /publications/1 → 1) */
+const bulletin = computed(() => {
+  const match = route.path.match(/\/publications\/(\d+)\/?$/)
+  return match?.[1] ?? ''
 })
 
 const metaCenterFormatted = computed(() => {

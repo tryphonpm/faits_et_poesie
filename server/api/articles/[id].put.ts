@@ -1,6 +1,5 @@
 import { readMultipartFormData, createError } from 'h3'
-import { writeFile, mkdir } from 'node:fs/promises'
-import { join, extname } from 'node:path'
+import { parseArticleDisplayFields, saveVisuelFile } from '../../utils/articleDisplayFields'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -33,16 +32,12 @@ export default defineEventHandler(async (event) => {
   let visuelPath = existing.visuel
 
   if (visuelPart?.data && visuelPart.filename) {
-    const visuelsDir = join(process.cwd(), 'public', 'data', 'visuels')
-    await mkdir(visuelsDir, { recursive: true })
-    const ext = extname(visuelPart.filename).toLowerCase()
-    const safeName = slugify(visuelPart.filename.replace(ext, '')) + '_' + Date.now() + ext
-    const dest = join(visuelsDir, safeName)
-    await writeFile(dest, visuelPart.data)
-    visuelPath = `/data/visuels/${safeName}`
+    visuelPath = await saveVisuelFile(visuelPart)
   } else if (supprimerVisuel) {
     visuelPath = ''
   }
+
+  const display = parseArticleDisplayFields(get)
 
   existing.titre = titre
   existing.numero = numero
@@ -51,29 +46,19 @@ export default defineEventHandler(async (event) => {
   existing.description = description
   existing.categorie = categorie
   existing.visuel = visuelPath
-
-  const layout = get('layout')
-  if (layout === 'stack' || layout === 'float' || layout === 'columns') existing.layout = layout
-  const visuelPosition = get('visuel-position')
-  if (visuelPosition === 'before-article' || visuelPosition === 'after-article') {
-    existing.visuelPosition = visuelPosition
-  }
-  const visuelColonnes = Number(get('visuel-colonnes'))
-  if (visuelColonnes >= 1 && visuelColonnes <= 5) existing.visuelColonnes = visuelColonnes
-  const visuelAlign = get('visuel-align')
-  if (visuelAlign === 'left' || visuelAlign === 'right') existing.visuelAlign = visuelAlign
+  existing.layout = display.layout
+  existing.visuelPosition = display.visuelPosition
+  existing.visuelColonnes = display.visuelColonnes
+  existing.visuelAlign = display.visuelAlign
+  existing.nbColonnes = display.nbColonnes
+  existing.nbRows = display.nbRows
+  existing.titreFontSize = display.titreFontSize
+  existing.masquerTitre = display.masquerTitre
+  existing.bordureGauche = display.bordureGauche
+  existing.noLettrine = display.noLettrine
+  existing.descriptionAlign = display.descriptionAlign
 
   await existing.save()
 
   return { success: true, id, visuel: visuelPath }
 })
-
-function slugify(str: string): string {
-  return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
