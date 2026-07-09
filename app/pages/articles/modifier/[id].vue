@@ -18,6 +18,9 @@ interface Article {
   masquerTitre?: boolean
   bordureGauche?: boolean
   noLettrine?: boolean
+  visuelBgBlack?: boolean
+  visuelGrayscale?: boolean
+  masquerBordureVisuel?: boolean
   descriptionAlign?: 'left' | 'center' | 'right'
   createdAt: string | null
 }
@@ -61,6 +64,9 @@ const titreFontSizeCustom = ref('')
 const masquerTitre = ref(false)
 const bordureGauche = ref(false)
 const noLettrine = ref(false)
+const visuelBgBlack = ref(true)
+const visuelGrayscale = ref(true)
+const masquerBordureVisuel = ref(false)
 const descriptionAlign = ref<'left' | 'center' | 'right'>('right')
 
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
@@ -97,6 +103,9 @@ watch(initial, (data) => {
   masquerTitre.value = data.masquerTitre ?? false
   bordureGauche.value = data.bordureGauche ?? false
   noLettrine.value = data.noLettrine ?? false
+  visuelBgBlack.value = data.visuelBgBlack ?? true
+  visuelGrayscale.value = data.visuelGrayscale ?? true
+  masquerBordureVisuel.value = data.masquerBordureVisuel ?? false
   descriptionAlign.value = data.descriptionAlign ?? 'right'
   const storedFontSize = data.titreFontSize ?? ''
   if (storedFontSize && !isTailwindFontSize(storedFontSize)) {
@@ -175,6 +184,9 @@ async function submit() {
   form.append('masquer-titre', String(masquerTitre.value))
   form.append('bordure-gauche', String(bordureGauche.value))
   form.append('no-lettrine', String(noLettrine.value))
+  form.append('visuel-bg-black', String(visuelBgBlack.value))
+  form.append('visuel-grayscale', String(visuelGrayscale.value))
+  form.append('masquer-bordure-visuel', String(masquerBordureVisuel.value))
   form.append('description-align', descriptionAlign.value)
   if (visuelRemoved.value) form.append('supprimer-visuel', 'true')
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
@@ -288,7 +300,7 @@ async function submit() {
             <textarea
               id="article"
               v-model="article"
-              rows="10"
+              rows="20"
               class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
             />
           </div>
@@ -347,17 +359,35 @@ async function submit() {
                 </button>
               </div>
             </div>
+
+            <div class="mt-3 flex flex-col gap-2">
+              <p class="text-xs font-medium uppercase tracking-wide text-slate-400">
+                Enrichissements du visuel
+              </p>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="visuelBgBlack" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Fond noir (bg-black)
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="visuelGrayscale" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Niveaux de gris + contraste (grayscale, contrast-125)
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="masquerBordureVisuel" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Masquer l'encadré du visuel
+              </label>
+            </div>
           </div>
 
           <div>
             <label class="mb-1 block text-sm font-semibold text-slate-700" for="description">
               Description
             </label>
-            <input
+            <textarea
               id="description"
               v-model="description"
-              type="text"
-              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              rows="5"
+              class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
             />
           </div>
 

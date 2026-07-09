@@ -25,3 +25,7 @@ logs
 
 # tmp
 tmp/*
+
+# visuels
+public/data/visuels/*
+public/data/insertVideos/*

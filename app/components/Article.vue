@@ -12,7 +12,7 @@ export interface ArticleDocument {
   id: string
   titre: string
   sousTitre: string
-  article: string
+  article: string 
   description: string
   categorie: string
   visuel: string
@@ -26,6 +26,9 @@ export interface ArticleDocument {
   masquerTitre: boolean
   bordureGauche: boolean
   noLettrine: boolean
+  visuelBgBlack: boolean
+  visuelGrayscale: boolean
+  masquerBordureVisuel: boolean
   descriptionAlign: DescriptionAlign
   createdAt: string
 }
@@ -46,18 +49,32 @@ const props = withDefaults(defineProps<{
   bordureGauche?: boolean | null
   /** Désactive la lettrine sur le corps de l'article (`null` = valeur en base) */
   noLettrine?: boolean | null
+  /** Fond noir derrière le visuel (`null` = valeur en base, défaut `true`) */
+  visuelBgBlack?: boolean | null
+  /** Niveaux de gris + contraste sur le visuel (`null` = valeur en base, défaut `true`) */
+  visuelGrayscale?: boolean | null
+  /** Masque l'encadré du visuel (`null` = valeur en base, défaut `false`) */
+  masquerBordureVisuel?: boolean | null
   /** Alignement de la description (`null` = valeur en base) */
   descriptionAlign?: DescriptionAlign | null
 }>(), {
   masquerTitre: null,
   bordureGauche: null,
   noLettrine: null,
+  visuelBgBlack: null,
+  visuelGrayscale: null,
+  masquerBordureVisuel: null,
   descriptionAlign: null
 })
 
 function propBoolean(prop: boolean | null | undefined, dbValue?: boolean) {
   if (prop !== null && prop !== undefined) return prop
   return dbValue ?? false
+}
+
+function propBooleanDefaultTrue(prop: boolean | null | undefined, dbValue?: boolean) {
+  if (prop !== null && prop !== undefined) return prop
+  return dbValue ?? true
 }
 
 function propDescriptionAlign(
@@ -169,6 +186,9 @@ const effectiveTitreFontSize = computed(() => props.titreFontSize ?? data.value?
 const effectiveMasquerTitre = computed(() => propBoolean(props.masquerTitre, data.value?.masquerTitre))
 const effectiveBordureGauche = computed(() => propBoolean(props.bordureGauche, data.value?.bordureGauche))
 const effectiveNoLettrine = computed(() => propBoolean(props.noLettrine, data.value?.noLettrine))
+const effectiveVisuelBgBlack = computed(() => propBooleanDefaultTrue(props.visuelBgBlack, data.value?.visuelBgBlack))
+const effectiveVisuelGrayscale = computed(() => propBooleanDefaultTrue(props.visuelGrayscale, data.value?.visuelGrayscale))
+const effectiveMasquerBordureVisuel = computed(() => propBoolean(props.masquerBordureVisuel, data.value?.masquerBordureVisuel))
 const effectiveDescriptionAlign = computed<DescriptionAlign>(() =>
   propDescriptionAlign(props.descriptionAlign, data.value?.descriptionAlign)
 )
@@ -247,6 +267,20 @@ const visuelFloatWrapAlignClass = computed(() =>
     : 'fp-article-visuel-float-wrap--right'
 )
 
+const visuelFigureClass = computed(() => ({
+  'fp-article-visuel--bg-black': effectiveVisuelBgBlack.value,
+  'fp-article-visuel--grayscale': effectiveVisuelGrayscale.value,
+  'fp-article-visuel--sans-bordure': effectiveMasquerBordureVisuel.value
+}))
+
+const visuelFloatWrapClass = computed(() => [
+  'fp-article-visuel-float-wrap',
+  'fp-article-visuel-float-wrap-dimension',
+  visuelFloatWrapAlignClass.value,
+  effectiveVisuelBgBlack.value ? 'fp-article-visuel-float-wrap--bg-black' : null,
+  effectiveVisuelGrayscale.value ? 'fp-article-visuel-float-wrap--grayscale' : null
+])
+
 const visuelWidthStyle = computed(() => {
   const ratio = Math.min(effectiveVisuelColonnes.value / effectiveNbColonnes.value, 1)
   return { '--fp-visuel-width': `${ratio * 100}%` } as Record<string, string>
@@ -281,6 +315,15 @@ const isVideoVisuel = computed(() => {
   const src = data.value?.visuel ?? ''
   return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(src)
 })
+
+function articleHtml(raw: string): string {
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/&lt;i&gt;/g, '<em>')
+    .replace(/&lt;\/i&gt;/g, '</em>')
+}
 </script>
 
 <template>
@@ -308,7 +351,7 @@ const isVideoVisuel = computed(() => {
       </template>
 
       <!-- stack / columns : visuel bloc avant -->
-      <figure v-if="showBlockVisuelBefore" class="fp-article-visuel">
+      <figure v-if="showBlockVisuelBefore" class="fp-article-visuel" :class="visuelFigureClass">
         <video
           v-if="isVideoVisuel"
           :src="data.visuel"
@@ -339,8 +382,7 @@ const isVideoVisuel = computed(() => {
         >
           <div
             v-if="showFloatVisuel"
-            class="fp-article-visuel-float-wrap fp-article-visuel-float-wrap-dimension"
-            :class="visuelFloatWrapAlignClass"
+            :class="visuelFloatWrapClass"
             :style="visuelWidthStyle"
           >
             <figure class="fp-article-visuel-float-wrap__figure">
@@ -367,9 +409,7 @@ const isVideoVisuel = computed(() => {
             {{ data.description }}
           </p>
 
-          <span v-if="data.article">
-            {{ data.article }}<span class="fp-article-fin" aria-hidden="true">&lt;</span>
-          </span>
+          <span v-if="data.article" v-html="articleHtml(data.article) + '<span class=\'fp-article-fin\' aria-hidden=\'true\'>&lt;</span>'" />
         </div>
       </div>
 
@@ -379,13 +419,11 @@ const isVideoVisuel = computed(() => {
           {{ data.description }}
         </p>
 
-        <p v-if="data.article" lang="fr" :class="articleCorpsClass">
-          {{ data.article }}<span class="fp-article-fin" aria-hidden="true">&lt;</span>
-        </p>
+        <p v-if="data.article" lang="fr" :class="articleCorpsClass" v-html="articleHtml(data.article) + '<span class=\'fp-article-fin\' aria-hidden=\'true\'>&lt;</span>'" />
       </template>
 
       <!-- visuel bloc après (stack / columns / float+after) -->
-      <figure v-if="showBlockVisuelAfter" class="fp-article-visuel">
+      <figure v-if="showBlockVisuelAfter" class="fp-article-visuel" :class="visuelFigureClass">
         <video
           v-if="isVideoVisuel"
           :src="data.visuel"

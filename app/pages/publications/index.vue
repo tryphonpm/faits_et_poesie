@@ -1,6 +1,7 @@
 <script setup lang="ts">
 interface PublicationSummary {
   numero: number
+  date_publication: string | null
   createdAt: string | null
 }
 
@@ -36,6 +37,17 @@ function articlesForNumero(numero: number) {
 }
 
 const deletingNumero = ref<number | null>(null)
+
+function formatPublicationDate(dateStr: string | null | undefined) {
+  if (!dateStr) return '—'
+  const date = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T12:00:00`)
+  if (Number.isNaN(date.getTime())) return dateStr
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  }).format(date)
+}
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
@@ -102,7 +114,10 @@ async function deletePublication(publication: PublicationSummary) {
               Bulletin n°{{ publication.numero }}
             </p>
             <p class="mt-0.5 text-xs text-slate-400">
-              {{ formatDate(publication.createdAt) }}
+              Publié le {{ formatPublicationDate(publication.date_publication) }}
+            </p>
+            <p class="text-xs text-slate-300">
+              Créé le {{ formatDate(publication.createdAt) }}
             </p>
             <ul
               v-if="articlesForNumero(publication.numero).length"
@@ -122,6 +137,12 @@ async function deletePublication(publication: PublicationSummary) {
           </div>
 
           <div class="flex shrink-0 items-center gap-2">
+            <NuxtLink
+              :to="`/publications/modifier/${publication.numero}`"
+              class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Modifier
+            </NuxtLink>
             <NuxtLink
               :to="`/publications/${publication.numero}`"
               class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"

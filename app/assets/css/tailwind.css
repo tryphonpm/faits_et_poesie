@@ -9,6 +9,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'My Soul';
+  src: url('/fonts/MySoul-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -38,12 +46,43 @@
   }
 
   .fp-front-header-top {
-    @apply flex justify-between border-b border-ink py-1 text-sm uppercase tracking-wide;
-    /* @apply flex justify-between border-b border-ink py-1.5 text-sm uppercase tracking-wide; */
+    @apply flex justify-between border-b border-ink py-1 text-sm tracking-wide;
+  }
+
+  .fp-front-header-top-left {
+    @apply font-bold italic normal-case text-gray-400;
+    font-size: calc(0.875rem * 0.85); /* text-sm − 20 % */
+  }
+
+  .fp-front-header-top-meteo {
+    @apply uppercase;
+  }
+
+  .fp-front-header-main {
+    @apply relative;
+  }
+
+  .fp-front-header-illustration {
+    @apply pointer-events-none absolute left-0 top-1/2 max-w-[28%] -translate-y-1/2 object-contain object-left;
+    height: 2.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .fp-front-header-illustration {
+      height: 4rem;
+      max-width: 22%;
+    }
   }
 
   .fp-front-header-title {
     @apply mt-2.5 mb-1 font-display text-3xl font-black uppercase leading-none tracking-masthead sm:text-3xl;
+  }
+
+  .fp-front-header-title-amp {
+    font-family: 'My Soul', cursive;
+    font-weight: normal;
+    font-size: 150%;
+    @apply text-ink-body;
   }
 
   .fp-front-header-sub-title {
@@ -97,6 +136,7 @@
   .fp-article-description {
     @apply text-xs italic text-ink-faint;
     line-height: 1.0;
+    white-space: pre-line;
   }
 
   .fp-article-description--left {
@@ -183,7 +223,17 @@
 
   .fp-article-visuel-float-wrap img,
   .fp-article-visuel-float-wrap video {
-    @apply block w-full bg-black grayscale contrast-125;
+    @apply block w-full;
+  }
+
+  .fp-article-visuel-float-wrap--bg-black img,
+  .fp-article-visuel-float-wrap--bg-black video {
+    @apply bg-black;
+  }
+
+  .fp-article-visuel-float-wrap--grayscale img,
+  .fp-article-visuel-float-wrap--grayscale video {
+    @apply grayscale contrast-125;
   }
 
   .fp-article-visuel-float-wrap--left {
@@ -195,13 +245,26 @@
   }
 
   .fp-article-visuel {
-    @apply border bg-white;
-    /* @apply border border-ink bg-white p-1; */
+    @apply border border-gray-300 bg-white;
+  }
+
+  .fp-article-visuel--sans-bordure {
+    @apply border-0;
   }
 
   .fp-article-visuel img,
   .fp-article-visuel video {
-    @apply block w-full bg-black grayscale contrast-125;
+    @apply block w-full;
+  }
+
+  .fp-article-visuel--bg-black img,
+  .fp-article-visuel--bg-black video {
+    @apply bg-black;
+  }
+
+  .fp-article-visuel--grayscale img,
+  .fp-article-visuel--grayscale video {
+    @apply grayscale contrast-125;
   }
 
   /* ——— Insert vidéo ——— */

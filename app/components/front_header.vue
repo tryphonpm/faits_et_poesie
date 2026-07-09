@@ -1,6 +1,8 @@
 <script setup lang="ts">
-const TOP_LEFT = 'Publications Désordonnées'
+const TOP_LEFT = '@publicationsdesordonnees'
 const TITLE = 'Faits & Poésie'
+const titleSegments = TITLE.split(/(&)/)
+const HEADER_ILLUSTRATION_SRC = '/data/visuels/publicationsdesordonnees_reduit.png'
 /** Texte de citation sans guillemets (gérés par la police Ornamenta Monumenta) */
 const SUB_TITLE_QUOTE = '« Certains se font de la poésie une idée si vague qu\'ils prennent ce vague pour l\'idée même de la poésie »'
 const SUB_TITLE_ATTRIBUTION = ', Paul Valéry'
@@ -23,8 +25,35 @@ const bulletin = computed(() => {
   return match?.[1] ?? ''
 })
 
+interface PublicationHeader {
+  numero: number
+  date_publication: string
+}
+
+const { data: publication } = await useAsyncData(
+  () => `front-header-publication-${bulletin.value || 'none'}`,
+  () => bulletin.value
+    ? $fetch<PublicationHeader>(`/api/publications/${bulletin.value}`)
+    : Promise.resolve(null),
+  { watch: [bulletin] }
+)
+
+function formatPublicationDateFr(dateStr: string) {
+  const date = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T12:00:00`)
+  if (Number.isNaN(date.getTime())) return dateStr
+  return new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(date)
+}
+
 const metaCenterFormatted = computed(() => {
   if (props.metaCenter) return props.metaCenter
+  if (publication.value?.date_publication) {
+    return formatPublicationDateFr(publication.value.date_publication)
+  }
   return new Intl.DateTimeFormat('fr-FR', {
     weekday: 'long',
     day: 'numeric',
@@ -37,21 +66,28 @@ const metaCenterFormatted = computed(() => {
 <template>
   <header class="fp-front-header">
     <div class="fp-front-header-top">
-      <div>{{ TOP_LEFT }}</div>
-      <div>Météo : {{ meteo }}</div>
+      <div class="fp-front-header-top-left">{{ TOP_LEFT }}</div>
+      <div class="fp-front-header-top-meteo">Météo : {{ meteo }}</div>
     </div>
 
+    <div class="fp-front-header-main">
+      <img
+        class="fp-front-header-illustration hidden md:block"
+        :src="HEADER_ILLUSTRATION_SRC"
+        alt=""
+        aria-hidden="true"
+      />
       <h1 class="fp-front-header-title">
-        {{ TITLE }} 
+        <template v-for="(segment, index) in titleSegments" :key="index">
+          <span v-if="segment === '&'" class="fp-front-header-title-amp pl-2 pr-3 text-rubrique">&</span>
+          <template v-else>{{ segment }}</template>
+        </template>
       </h1>
 
-
-    <p class="fp-front-header-sub-title">
-      <!-- r / t = glyphes guillemets dans Ornamenta Monumenta -->
-     
-      {{ SUB_TITLE_QUOTE }} {{ SUB_TITLE_ATTRIBUTION }}
-     
-    </p>
+      <p class="fp-front-header-sub-title">
+        {{ SUB_TITLE_QUOTE }} {{ SUB_TITLE_ATTRIBUTION }}
+      </p>
+    </div>
 
     <div class="fp-front-header-meta">
       <div>Bulletin n°{{ bulletin }}</div>

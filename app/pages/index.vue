@@ -1,30 +1,40 @@
 <script setup lang="ts">
+interface PublicationSummary {
+  numero: number
+  status: string
+}
+
+const { data: publications, status: fetchStatus } = await useFetch<PublicationSummary[]>('/api/publications', {
+  default: () => []
+})
+
+const latestPublished = computed(() =>
+  (publications.value ?? [])
+    .filter((p) => p.status === 'publié')
+    .sort((a, b) => b.numero - a.numero)[0] ?? null
+)
+
+if (latestPublished.value) {
+  await navigateTo(`/publications/${latestPublished.value.numero}`, { replace: true })
+}
+
 useHead({ title: 'Accueil' })
 </script>
 
 <template>
-  <main class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-800">
-    <div class="mx-auto flex max-w-3xl flex-col gap-10 px-6 py-16">
-      <header class="text-center">
-        <p class="text-sm font-semibold uppercase tracking-widest text-emerald-600">FAITS & POÉSIE</p>
-        <h1 class="mt-2 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-          Accueil
-        </h1>
-        <p class="mt-4 text-lg text-slate-600">
-          Choisissez une section pour continuer.
-        </p>
-      </header>
-
-      <CardRedirection
-        to="/articles"
-        title="Articles"
-        description="Consulter la liste des articles disponibles."
-      />
-      <CardRedirection
+  <main
+    v-if="fetchStatus !== 'pending' && !latestPublished"
+    class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-800"
+  >
+    <div class="mx-auto flex max-w-3xl flex-col items-center gap-4 px-6 py-16 text-center">
+      <p class="text-sm font-semibold uppercase tracking-widest text-emerald-600">FAITS & POÉSIE</p>
+      <p class="text-lg text-slate-600">Aucune publication publiée pour l'instant.</p>
+      <NuxtLink
         to="/publications"
-        title="Publications"
-        description="Consulter la liste des publications disponibles."
-      />
+        class="mt-4 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-700"
+      >
+        Voir les publications
+      </NuxtLink>
     </div>
   </main>
 </template>

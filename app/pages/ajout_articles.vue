@@ -3,10 +3,18 @@ useHead({ title: 'Ajouter un article' })
 
 const router = useRouter()
 
+interface PublicationSummary {
+  numero: number
+  createdAt: string | null
+}
+
 const { data: categories } = await useFetch<string[]>('/api/categories', { default: () => [] })
+const { data: publications, status: publicationsStatus } = await useFetch<PublicationSummary[]>('/api/publications', {
+  default: () => [] as PublicationSummary[]
+})
 
 const titre = ref('')
-const numero = ref<number | null>(null)
+const numero = ref('')
 const sousTitre = ref('')
 const article = ref('')
 const description = ref('')
@@ -77,9 +85,16 @@ async function submit() {
     return
   }
 
-  if (numero.value === null || !Number.isInteger(numero.value) || numero.value < 1) {
+  if (!numero.value) {
     status.value = 'error'
-    message.value = 'Le numéro de bulletin est obligatoire (entier ≥ 1).'
+    message.value = 'Sélectionnez un numéro de bulletin.'
+    return
+  }
+
+  const numeroInt = Number(numero.value)
+  if (!Number.isInteger(numeroInt) || numeroInt < 1) {
+    status.value = 'error'
+    message.value = 'Le numéro de bulletin sélectionné est invalide.'
     return
   }
 
@@ -87,7 +102,7 @@ async function submit() {
   message.value = ''
 
   const form = new FormData()
-  form.append('numero', String(numero.value))
+  form.append('numero', String(numeroInt))
   form.append('titre', titre.value)
   form.append('sous-titre', sousTitre.value)
   form.append('article', article.value)
@@ -129,15 +144,34 @@ async function submit() {
           <label class="mb-1 block text-sm font-semibold text-slate-700" for="numero">
             Numéro de bulletin <span class="text-red-500">*</span>
           </label>
-          <input
+          <select
             id="numero"
-            v-model.number="numero"
-            type="number"
-            min="1"
-            step="1"
-            placeholder="Ex. 20"
-            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-          />
+            v-model="numero"
+            required
+            :disabled="publicationsStatus === 'pending' || !publications?.length"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+          >
+            <option value="" disabled>
+              {{ publicationsStatus === 'pending' ? 'Chargement…' : 'Sélectionner un bulletin…' }}
+            </option>
+            <option
+              v-for="publication in publications"
+              :key="publication.numero"
+              :value="String(publication.numero)"
+            >
+              Bulletin n°{{ publication.numero }}
+            </option>
+          </select>
+          <p v-if="publicationsStatus !== 'pending' && !publications?.length" class="mt-1.5 text-xs text-amber-600">
+            Aucune publication en base.
+            <NuxtLink to="/ajout_publication" class="font-medium underline hover:text-amber-700">
+              Créer un bulletin
+            </NuxtLink>
+            d'abord.
+          </p>
+          <p v-else class="mt-1.5 text-xs text-slate-400">
+            Obligatoire — l'article sera ajouté à la page <code class="rounded bg-slate-100 px-1">/publications/{{ numero || '…' }}</code>.
+          </p>
         </div>
 
         <!-- Titre -->

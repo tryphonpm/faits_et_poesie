@@ -1,5 +1,6 @@
 import { readMultipartFormData, createError } from 'h3'
 import { parseArticleDisplayFields, saveVisuelFile } from '../../utils/articleDisplayFields'
+import { appendArticleToPublicationPage } from '../../utils/publicationPageArticle'
 
 export default defineEventHandler(async (event) => {
   const parts = await readMultipartFormData(event)
@@ -53,5 +54,12 @@ export default defineEventHandler(async (event) => {
 
   await Article.create(payload)
 
-  return { success: true, id, visuel: visuelPath }
+  try {
+    await appendArticleToPublicationPage(numero, titre, id)
+  } catch (err) {
+    await Article.deleteOne({ id })
+    throw err
+  }
+
+  return { success: true, id, numero, visuel: visuelPath, publicationPage: `/publications/${numero}` }
 })

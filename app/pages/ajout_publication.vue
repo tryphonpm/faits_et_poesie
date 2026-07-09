@@ -4,6 +4,7 @@ useHead({ title: 'Ajouter une publication' })
 const router = useRouter()
 
 const numero = ref<number | null>(null)
+const datePublication = ref(new Date().toISOString().slice(0, 10))
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const message = ref('')
 
@@ -14,13 +15,22 @@ async function submit() {
     return
   }
 
+  if (!datePublication.value) {
+    status.value = 'error'
+    message.value = 'La date de publication est obligatoire.'
+    return
+  }
+
   status.value = 'loading'
   message.value = ''
 
   try {
     const result = await $fetch<{ page?: string }>('/api/publications/create', {
       method: 'POST',
-      body: { numero: numero.value }
+      body: {
+        numero: numero.value,
+        date_publication: datePublication.value
+      }
     })
     await router.push(result.page ?? `/publications/${numero.value}`)
   } catch (err: any) {
@@ -62,6 +72,22 @@ async function submit() {
             Correspond au numéro affiché dans l'en-tête du journal (ex. Bulletin n°20).
             Une page <code class="rounded bg-slate-100 px-1">/publications/{{ numero ?? '…' }}</code>
             sera créée à partir de la maquette de base.
+          </p>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-semibold text-slate-700" for="date-publication">
+            Date de publication <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="date-publication"
+            v-model="datePublication"
+            type="date"
+            required
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+          />
+          <p class="mt-1.5 text-xs text-slate-400">
+            Affichée dans l'en-tête du journal à la place de la date du jour.
           </p>
         </div>
 

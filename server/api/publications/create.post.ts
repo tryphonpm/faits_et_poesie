@@ -1,6 +1,7 @@
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createError, readBody } from 'h3'
+import { normalizePublicationDate } from '../../utils/publicationDate'
 
 async function createPublicationPage(numero: number) {
   const pagesDir = join(process.cwd(), 'app', 'pages', 'publications')
@@ -29,13 +30,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Le numéro de bulletin est obligatoire (entier ≥ 1).' })
   }
 
+  const date_publication = normalizePublicationDate(body?.date_publication)
+  if (!date_publication) {
+    throw createError({ statusCode: 400, message: 'La date de publication est obligatoire (AAAA-MM-JJ).' })
+  }
+
   const existing = await Publication.findOne({ numero }).lean()
   if (existing) {
     throw createError({ statusCode: 409, message: `Le bulletin n°${numero} existe déjà.` })
   }
 
   const createdAt = new Date().toISOString()
-  await Publication.create({ numero, createdAt })
+  await Publication.create({ numero, date_publication, status: 'brouillon', createdAt })
 
   try {
     await createPublicationPage(numero)
@@ -44,5 +50,5 @@ export default defineEventHandler(async (event) => {
     throw err
   }
 
-  return { success: true, numero, createdAt, page: `/publications/${numero}` }
+  return { success: true, numero, date_publication, status: 'brouillon', createdAt, page: `/publications/${numero}` }
 })
