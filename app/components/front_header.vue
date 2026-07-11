@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const TOP_LEFT = '@publicationsdesordonnees'
-const TITLE = 'Faits & Poésie'
+const TITLE = 'F A I T S & P O É S I E'
 const titleSegments = TITLE.split(/(&)/)
 const HEADER_ILLUSTRATION_SRC = '/data/visuels/publicationsdesordonnees_reduit.png'
 /** Texte de citation sans guillemets (gérés par la police Ornamenta Monumenta) */
@@ -79,8 +79,8 @@ const metaCenterFormatted = computed(() => {
       />
       <h1 class="fp-front-header-title">
         <template v-for="(segment, index) in titleSegments" :key="index">
-          <span v-if="segment === '&'" class="fp-front-header-title-amp pl-2 pr-3 text-rubrique">&</span>
-          <template v-else>{{ segment }}</template>
+          <span v-if="segment === '&'" class="fp-front-header-title-amp pl-2 pr-3 text-rubrique text-7xl">&</span>
+          <span v-else class="fp-front-header-title-font">{{ segment }}</span>
         </template>
       </h1>
 

@@ -27,5 +27,10 @@ logs
 tmp/*
 
 # visuels
+public/fonts/*
 public/data/visuels/*
 public/data/insertVideos/*
+public/data/td/*
+
+# site statique généré
+publications-html/

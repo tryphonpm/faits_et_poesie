@@ -29,6 +29,8 @@ export interface ArticleDocument {
   visuelBgBlack: boolean
   visuelGrayscale: boolean
   masquerBordureVisuel: boolean
+  encadre: boolean
+  masquerBordureBas: boolean
   descriptionAlign: DescriptionAlign
   createdAt: string
 }
@@ -55,6 +57,10 @@ const props = withDefaults(defineProps<{
   visuelGrayscale?: boolean | null
   /** Masque l'encadré du visuel (`null` = valeur en base, défaut `false`) */
   masquerBordureVisuel?: boolean | null
+  /** Affiche un cadre autour de l'article entier (`null` = valeur en base) */
+  encadre?: boolean | null
+  /** Masque la bordure basse par défaut de l'article (`null` = valeur en base) */
+  masquerBordureBas?: boolean | null
   /** Alignement de la description (`null` = valeur en base) */
   descriptionAlign?: DescriptionAlign | null
 }>(), {
@@ -64,6 +70,8 @@ const props = withDefaults(defineProps<{
   visuelBgBlack: null,
   visuelGrayscale: null,
   masquerBordureVisuel: null,
+  encadre: null,
+  masquerBordureBas: null,
   descriptionAlign: null
 })
 
@@ -189,6 +197,8 @@ const effectiveNoLettrine = computed(() => propBoolean(props.noLettrine, data.va
 const effectiveVisuelBgBlack = computed(() => propBooleanDefaultTrue(props.visuelBgBlack, data.value?.visuelBgBlack))
 const effectiveVisuelGrayscale = computed(() => propBooleanDefaultTrue(props.visuelGrayscale, data.value?.visuelGrayscale))
 const effectiveMasquerBordureVisuel = computed(() => propBoolean(props.masquerBordureVisuel, data.value?.masquerBordureVisuel))
+const effectiveEncadre = computed(() => propBoolean(props.encadre, data.value?.encadre))
+const effectiveMasquerBordureBas = computed(() => propBoolean(props.masquerBordureBas, data.value?.masquerBordureBas))
 const effectiveDescriptionAlign = computed<DescriptionAlign>(() =>
   propDescriptionAlign(props.descriptionAlign, data.value?.descriptionAlign)
 )
@@ -227,7 +237,9 @@ const rowSpanClass = computed(() => rowSpanClasses[effectiveNbRows.value] ?? row
 const articleRootClass = computed(() => [
   colSpanClass.value,
   rowSpanClass.value,
-  effectiveBordureGauche.value ? 'fp-article--bordure-gauche' : null
+  effectiveBordureGauche.value ? 'fp-article--bordure-gauche' : null,
+  effectiveEncadre.value ? 'fp-article--encadre' : null,
+  effectiveMasquerBordureBas.value ? 'fp-article--sans-bordure-bas' : null
 ])
 
 const visibleMetaFields = computed(() =>
@@ -316,11 +328,14 @@ const isVideoVisuel = computed(() => {
   return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(src)
 })
 
+const LOREM = `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets. It has survived not only many decades, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised thanks to these sheets and more recently with desktop publishing software like Aldus PageMaker and Microsoft Word including versions of Lorem Ipsum.`
+
 function articleHtml(raw: string): string {
   return raw
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    .replace(/&lt;lorem&gt;/gi, LOREM)
     .replace(/&lt;i&gt;/g, '<em>')
     .replace(/&lt;\/i&gt;/g, '</em>')
 }

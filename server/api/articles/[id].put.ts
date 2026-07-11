@@ -59,6 +59,8 @@ export default defineEventHandler(async (event) => {
   existing.visuelBgBlack = display.visuelBgBlack
   existing.visuelGrayscale = display.visuelGrayscale
   existing.masquerBordureVisuel = display.masquerBordureVisuel
+  existing.encadre = display.encadre
+  existing.masquerBordureBas = display.masquerBordureBas
   existing.descriptionAlign = display.descriptionAlign
 
   await existing.save()

@@ -17,6 +17,25 @@
   font-display: swap;
 }
 
+/* Madrid Grunge — public/fonts/madrid_grunge/Madrid Grunge.otf */
+@font-face {
+  font-family: 'madrid_grunge';
+  src: url('/fonts/madrid_grunge/Madrid Grunge.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'orbit_3';
+  src: url('/fonts/orbit_3/ORBIT PERSONAL USE.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -74,14 +93,23 @@
     }
   }
 
+  /*
+   * ↓ Modifier uniquement cette classe pour changer la police ET la taille du titre masthead.
+   *   font-size : text-2xl · text-3xl · text-4xl · text-5xl · text-6xl · text-7xl · text-8xl
+   */
+  .fp-front-header-title-font {
+    font-family: 'orbit_3', Georgia, 'Times New Roman', serif;
+    @apply text-5xl;
+  }
+
   .fp-front-header-title {
-    @apply mt-2.5 mb-1 font-display text-3xl font-black uppercase leading-none tracking-masthead sm:text-3xl;
+    @apply mt-0.5 mb-1 tracking-masthead;
   }
 
   .fp-front-header-title-amp {
     font-family: 'My Soul', cursive;
     font-weight: normal;
-    font-size: 150%;
+    font-size: 200%;
     @apply text-ink-body;
   }
 
@@ -117,6 +145,14 @@
 
   .fp-article--bordure-gauche {
     @apply border-l border-ink pl-3;
+  }
+
+  .fp-article--encadre {
+    @apply border border-ink !p-3;
+  }
+
+  .fp-article--sans-bordure-bas {
+    @apply !border-b-0 !pb-0 !mb-0;
   }
 
   /* ——— Champs article (composant Article) ——— */

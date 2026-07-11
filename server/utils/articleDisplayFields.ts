@@ -27,6 +27,8 @@ export function parseArticleDisplayFields(get: GetField) {
     visuelBgBlack: get('visuel-bg-black') !== 'false',
     visuelGrayscale: get('visuel-grayscale') !== 'false',
     masquerBordureVisuel: get('masquer-bordure-visuel') === 'true',
+    encadre: get('encadre') === 'true',
+    masquerBordureBas: get('masquer-bordure-bas') === 'true',
     descriptionAlign:
       descriptionAlign === 'left' || descriptionAlign === 'center' || descriptionAlign === 'right'
         ? descriptionAlign

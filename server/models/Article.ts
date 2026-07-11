@@ -24,6 +24,8 @@ export const Article = defineMongooseModel({
     visuelBgBlack: { type: Boolean, default: true },
     visuelGrayscale: { type: Boolean, default: true },
     masquerBordureVisuel: { type: Boolean, default: false },
+    encadre: { type: Boolean, default: false },
+    masquerBordureBas: { type: Boolean, default: false },
     descriptionAlign: { type: String, enum: ['left', 'center', 'right'], default: 'right' },
     createdAt: { type: String, required: true }
   },

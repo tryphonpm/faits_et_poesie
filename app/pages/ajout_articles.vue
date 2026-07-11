@@ -33,6 +33,8 @@ const titreFontSize = ref('')
 const titreFontSizeCustom = ref('')
 const masquerTitre = ref(false)
 const bordureGauche = ref(false)
+const encadre = ref(false)
+const masquerBordureBas = ref(false)
 const noLettrine = ref(false)
 const descriptionAlign = ref<'left' | 'center' | 'right'>('right')
 
@@ -43,7 +45,7 @@ const titreFontSizeOptions = [
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const message = ref('')
 
-const ACCEPTED_IMAGES = ['image/png', 'image/jpeg', 'image/svg+xml']
+const ACCEPTED_IMAGES = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/gif']
 const ACCEPTED_VIDEOS = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']
 const ACCEPTED = [...ACCEPTED_IMAGES, ...ACCEPTED_VIDEOS]
 
@@ -52,7 +54,7 @@ const visuelIsVideo = computed(() => visuelFile.value?.type.startsWith('video/')
 function handleFile(file: File | null | undefined) {
   if (!file) return
   if (!ACCEPTED.includes(file.type)) {
-    message.value = 'Format non supporté. Utilisez PNG, JPG, SVG, MP4, WebM ou MOV.'
+    message.value = 'Format non supporté. Utilisez PNG, JPG, GIF, SVG, MP4, WebM ou MOV.'
     status.value = 'error'
     return
   }
@@ -117,6 +119,8 @@ async function submit() {
   form.append('titre-font-size', titreFontSizeCustom.value.trim() || titreFontSize.value)
   form.append('masquer-titre', String(masquerTitre.value))
   form.append('bordure-gauche', String(bordureGauche.value))
+  form.append('encadre', String(encadre.value))
+  form.append('masquer-bordure-bas', String(masquerBordureBas.value))
   form.append('no-lettrine', String(noLettrine.value))
   form.append('description-align', descriptionAlign.value)
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
@@ -219,7 +223,7 @@ async function submit() {
         <!-- Visuel -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700">
-            Visuel <span class="text-xs font-normal text-slate-400">(PNG, JPG, SVG, MP4, WebM, MOV)</span>
+            Visuel <span class="text-xs font-normal text-slate-400">(PNG, JPG, GIF, SVG, MP4, WebM, MOV)</span>
           </label>
 
           <div
@@ -241,7 +245,7 @@ async function submit() {
             <input
               ref="fileInput"
               type="file"
-              accept=".png,.jpg,.jpeg,.svg,.mp4,.webm,.ogg,.mov"
+              accept=".png,.jpg,.jpeg,.gif,.svg,.mp4,.webm,.ogg,.mov"
               class="hidden"
               @change="onFileInput"
             />
@@ -439,6 +443,14 @@ async function submit() {
               <label class="flex items-center gap-2 text-sm text-slate-700">
                 <input v-model="bordureGauche" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                 Bordure gauche
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="encadre" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Encadrer l'article
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="masquerBordureBas" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Masquer la bordure basse
               </label>
               <label class="flex items-center gap-2 text-sm text-slate-700">
                 <input v-model="noLettrine" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
