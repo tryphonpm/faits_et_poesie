@@ -338,6 +338,11 @@ function articleHtml(raw: string): string {
     .replace(/&lt;lorem&gt;/gi, LOREM)
     .replace(/&lt;i&gt;/g, '<em>')
     .replace(/&lt;\/i&gt;/g, '</em>')
+    .replace(
+      /&lt;img&gt;([^&]+)&lt;\/img&gt;/gi,
+      (_, filename) =>
+        `<img src="/data/visuels/${filename.trim()}" class="fp-article-inline-img" alt="" />`
+    )
 }
 </script>
 

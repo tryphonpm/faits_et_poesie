@@ -2,7 +2,8 @@
 const TOP_LEFT = '@publicationsdesordonnees'
 const TITLE = 'F A I T S & P O É S I E'
 const titleSegments = TITLE.split(/(&)/)
-const HEADER_ILLUSTRATION_SRC = '/data/visuels/publicationsdesordonnees_reduit.png'
+const HEADER_ILLUSTRATION_SRC = '/data/visuels/publicationsdesordonnees_reduit_gauche.png'
+const HEADER_GIF_SRC = '/data/visuels/publicationsdesordonnees_reduit_droite.png'
 /** Texte de citation sans guillemets (gérés par la police Ornamenta Monumenta) */
 const SUB_TITLE_QUOTE = '« Certains se font de la poésie une idée si vague qu\'ils prennent ce vague pour l\'idée même de la poésie »'
 const SUB_TITLE_ATTRIBUTION = ', Paul Valéry'
@@ -74,6 +75,12 @@ const metaCenterFormatted = computed(() => {
       <img
         class="fp-front-header-illustration hidden md:block"
         :src="HEADER_ILLUSTRATION_SRC"
+        alt=""
+        aria-hidden="true"
+      />
+      <img
+        class="fp-front-header-illustration-right hidden md:block"
+        :src="HEADER_GIF_SRC"
         alt=""
         aria-hidden="true"
       />

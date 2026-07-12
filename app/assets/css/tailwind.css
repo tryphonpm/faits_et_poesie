@@ -86,8 +86,17 @@
     height: 2.75rem;
   }
 
+  .fp-front-header-illustration-right {
+    @apply pointer-events-none absolute right-0 top-1/2 max-w-[28%] -translate-y-1/2 object-contain object-right;
+    height: 2.75rem;
+  }
+
   @media (min-width: 768px) {
     .fp-front-header-illustration {
+      height: 4rem;
+      max-width: 22%;
+    }
+    .fp-front-header-illustration-right {
       height: 4rem;
       max-width: 22%;
     }
@@ -216,6 +225,10 @@
 
   .fp-article-fin {
     font-family: Webdings, sans-serif;
+  }
+
+  .fp-article-inline-img {
+    @apply my-2 block w-full object-cover;
   }
 
   .fp-article-corps--float {

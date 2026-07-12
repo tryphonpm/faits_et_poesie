@@ -184,6 +184,9 @@ function rewritePaths(html, cssMap, jsMap, imgMap) {
   // Lien archives
   html = html.replace(/href="\/publications\/archives\/?"/g, 'href="archives.html"')
 
+  // Supprimer le footer du layout newspaper (lien "Accès aux archives")
+  html = html.replace(/<footer[^>]*>[\s\S]*?Accès aux archives[\s\S]*?<\/footer>/g, '')
+
   // Supprimer tous les attributs crossorigin pour garantir le chargement via file://
   html = html.replace(/ crossorigin(="[^"]*")?/g, '')
 
