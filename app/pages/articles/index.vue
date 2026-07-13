@@ -180,6 +180,12 @@ async function deleteArticle(article: ArticleSummary) {
 
           <div class="flex shrink-0 items-center gap-2">
             <NuxtLink
+              :to="`/articles/modifier/${encodeURIComponent(article.id)}`"
+              class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
+            >
+              Modifier
+            </NuxtLink>
+            <NuxtLink
               :to="`/articles/${encodeURIComponent(article.id)}`"
               class="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
             >
