@@ -228,7 +228,10 @@
   }
 
   .fp-article-inline-img {
-    @apply my-2 block w-full object-cover;
+    @apply block w-full object-cover;
+
+    margin-top: 1rem;
+    padding-bottom: 5 rem;
   }
 
   .fp-article-corps--float {

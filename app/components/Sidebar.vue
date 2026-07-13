@@ -5,6 +5,7 @@ const links = [
   { to: '/', label: 'Accueil' },
   { to: '/articles', label: 'Articles' },
   { to: '/publications', label: 'Publications' },
+  { to: '/publications_speciales', label: 'Publications spéciales' },
   { to: '/bo', label: 'Back-office' }
 ]
 

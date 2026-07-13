@@ -2,6 +2,7 @@
 interface ArticleSummary {
   id: string
   numero?: number | null
+  publicationSpeciale?: boolean | null
   titre: string
   sousTitre: string
   description: string
@@ -12,6 +13,11 @@ interface ArticleSummary {
 interface PublicationSummary {
   numero: number
   createdAt: string | null
+}
+
+interface PublicationSpecialeSummary {
+  numero: number
+  titre: string
 }
 
 useHead({ title: 'Articles' })
@@ -27,13 +33,27 @@ const { data: publications, status: publicationsStatus } = await useFetch<Public
   default: () => [] as PublicationSummary[]
 })
 
+const { data: publicationsSpeciales } = await useFetch<PublicationSpecialeSummary[]>('/api/publications-speciales', {
+  default: () => [] as PublicationSpecialeSummary[]
+})
+
+const filterSpeciale = ref('')
+
+function isPublicationSpeciale(article: ArticleSummary) {
+  return article.publicationSpeciale === true
+}
+
 const filteredArticles = computed(() => {
   const list = articles.value ?? []
+  if (filterSpeciale.value !== '') {
+    const num = Number(filterSpeciale.value)
+    return list.filter(article => article.numero === num && isPublicationSpeciale(article))
+  }
   if (filterKey.value === '') {
-    return list.filter(article => article.numero == null)
+    return list.filter(article => article.numero == null && !isPublicationSpeciale(article))
   }
   const numero = Number(filterKey.value)
-  return list.filter(article => article.numero === numero)
+  return list.filter(article => article.numero === numero && !isPublicationSpeciale(article))
 })
 
 const deletingId = ref<string | null>(null)
@@ -86,6 +106,7 @@ async function deleteArticle(article: ArticleSummary) {
             id="filter-numero"
             v-model="filterKey"
             class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+            @change="filterSpeciale = ''"
           >
             <option value="">Sans bulletin</option>
             <option
@@ -94,6 +115,27 @@ async function deleteArticle(article: ArticleSummary) {
               :value="String(publication.numero)"
             >
               Bulletin n°{{ publication.numero }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-semibold text-slate-700" for="filter-speciale">
+            Publication spéciale
+          </label>
+          <select
+            id="filter-speciale"
+            v-model="filterSpeciale"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+            @change="filterKey = ''"
+          >
+            <option value="">—</option>
+            <option
+              v-for="ps in publicationsSpeciales"
+              :key="ps.numero"
+              :value="String(ps.numero)"
+            >
+              {{ ps.titre || `Spéciale n°${ps.numero}` }}
             </option>
           </select>
         </div>

@@ -29,10 +29,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Le numéro de bulletin est obligatoire (entier ≥ 1).' })
   }
 
+  const publicationSpeciale = get('publication-speciale') === 'true'
+
   let visuelPath = existing.visuel
 
   if (visuelPart?.data && visuelPart.filename) {
-    visuelPath = await saveVisuelFile(visuelPart)
+    visuelPath = await saveVisuelFile(visuelPart, numero)
   } else if (supprimerVisuel) {
     visuelPath = ''
   }
@@ -41,6 +43,7 @@ export default defineEventHandler(async (event) => {
 
   existing.titre = titre
   existing.numero = numero
+  existing.publicationSpeciale = publicationSpeciale
   existing.sousTitre = sousTitre
   existing.article = article
   existing.description = description

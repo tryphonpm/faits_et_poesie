@@ -5,6 +5,7 @@ export const Article = defineMongooseModel({
   schema: {
     id: { type: String, required: true, unique: true },
     numero: { type: Number, min: 1 },
+    publicationSpeciale: { type: Boolean, default: false },
     titre: { type: String, required: true },
     sousTitre: { type: String, default: '' },
     article: { type: String, default: '' },
