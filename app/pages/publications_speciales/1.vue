@@ -10,16 +10,7 @@ useHead({ title: 'Faits & Poésie — Maquette Numéro Spécial' })
   <!-- Ligne 1 : en-tête sur les 5 colonnes (fp-front-header → md:col-span-5) -->
   <FrontHeaderSpecial />
 
-  <!-- espagne régularisation -->
-  <Article
-    id="MAQUETTE"
-    :nb-colonnes="5"
-    :nb-rows="1"
-    layout="float"
-    :visuel-colonnes="5"
-    visuel-align="left"
-    titre-font-size="6xl"
-  />
- 
 
+  <!-- TITRE SPÉCIAL -->
+  <Article id="2026-07-13-14-42-09_1783946529200"/>
 </template>
