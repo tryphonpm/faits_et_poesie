@@ -1,3 +1,5 @@
+import { basename, dirname, extname, join } from 'node:path'
+
 type GetField = (name: string) => string
 
 function clampColumns(value: number) {
@@ -34,6 +36,7 @@ export function parseArticleDisplayFields(get: GetField) {
     masquerBordureVisuel: get('masquer-bordure-visuel') === 'true',
     encadre: get('encadre') === 'true',
     masquerBordureBas: get('masquer-bordure-bas') === 'true',
+    sansColonnes: get('sans-colonnes') === 'true',
     descriptionAlign:
       descriptionAlign === 'left' || descriptionAlign === 'center' || descriptionAlign === 'right'
         ? descriptionAlign
@@ -41,37 +44,83 @@ export function parseArticleDisplayFields(get: GetField) {
   }
 }
 
+function sanitizeFilename(name: string): string {
+  const cleaned = name.replace(/[/\\<>:"|?*\x00-\x1f]/g, '').trim()
+  return cleaned || 'visuel'
+}
+
+function normalizeVisuelChemin(chemin: string): string | null {
+  let path = chemin.trim().replace(/\\/g, '/')
+  path = path.replace(/^public\//, '')
+  if (!path.startsWith('/')) path = `/${path}`
+  if (path.includes('..')) return null
+  if (!path.startsWith('/data/visuels/') && !path.startsWith('/data/insertVideos/')) return null
+  return path
+}
+
+function webPathToDiskPath(webPath: string): string {
+  return join(process.cwd(), 'public', webPath.replace(/^\//, ''))
+}
+
+export function resolveVisuelWebPath(
+  fileName: string,
+  options?: { numero?: number; publicationSpeciale?: boolean; chemin?: string }
+): string {
+  const hinted = options?.chemin ? normalizeVisuelChemin(options.chemin) : null
+  if (hinted) return hinted
+
+  if (options?.numero) {
+    const subDir = options.publicationSpeciale
+      ? `visuels/special/${options.numero}`
+      : `visuels/${options.numero}`
+    return `/data/${subDir}/${fileName}`
+  }
+
+  return `/data/visuels/${fileName}`
+}
+
+export async function resolveExistingVisuelChemin(chemin: string): Promise<string> {
+  const { access } = await import('node:fs/promises')
+  const { createError } = await import('h3')
+
+  const webPath = normalizeVisuelChemin(chemin)
+  if (!webPath) {
+    throw createError({ statusCode: 400, message: 'Chemin de visuel invalide.' })
+  }
+
+  try {
+    await access(webPathToDiskPath(webPath))
+  } catch {
+    throw createError({ statusCode: 404, message: `Visuel introuvable : ${webPath}` })
+  }
+
+  return webPath
+}
+
 export async function saveVisuelFile(
-  visuelPart: { data?: Buffer, filename?: string } | undefined
+  visuelPart: { data?: Buffer, filename?: string } | undefined,
+  options?: { numero?: number; publicationSpeciale?: boolean; chemin?: string }
 ) {
   if (!visuelPart?.data || !visuelPart.filename) return ''
 
-  const { writeFile, mkdir } = await import('node:fs/promises')
-  const { join, extname } = await import('node:path')
+  const { access, writeFile, mkdir } = await import('node:fs/promises')
 
-  const ext = extname(visuelPart.filename).toLowerCase()
+  const fileName = sanitizeFilename(basename(visuelPart.filename))
+  const ext = extname(fileName).toLowerCase()
   const isVideo = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext)
-  const targetDir = join(
-    process.cwd(),
-    'public',
-    'data',
-    isVideo ? 'insertVideos' : 'visuels'
-  )
-  await mkdir(targetDir, { recursive: true })
 
-  const safeName = slugify(visuelPart.filename.replace(ext, '')) + '_' + Date.now() + ext
-  const dest = join(targetDir, safeName)
-  await writeFile(dest, visuelPart.data)
+  const webPath = isVideo
+    ? `/data/insertVideos/${fileName}`
+    : resolveVisuelWebPath(fileName, options)
 
-  return isVideo ? `/data/insertVideos/${safeName}` : `/data/visuels/${safeName}`
-}
+  const diskPath = webPathToDiskPath(webPath)
 
-function slugify(str: string): string {
-  return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+  try {
+    await access(diskPath)
+    return webPath
+  } catch {
+    await mkdir(dirname(diskPath), { recursive: true })
+    await writeFile(diskPath, visuelPart.data)
+    return webPath
+  }
 }

@@ -24,6 +24,7 @@ interface Article {
   masquerBordureVisuel?: boolean
   encadre?: boolean
   masquerBordureBas?: boolean
+  sansColonnes?: boolean
   descriptionAlign?: 'left' | 'center' | 'right'
   titreAlign?: 'left' | 'center' | 'right'
   createdAt: string | null
@@ -70,6 +71,7 @@ const masquerTitre = ref(false)
 const bordureGauche = ref(false)
 const encadre = ref(false)
 const masquerBordureBas = ref(false)
+const sansColonnes = ref(false)
 const noLettrine = ref(false)
 const visuelBgBlack = ref(true)
 const visuelGrayscale = ref(true)
@@ -113,6 +115,7 @@ watch(initial, (data) => {
   bordureGauche.value = data.bordureGauche ?? false
   encadre.value = data.encadre ?? false
   masquerBordureBas.value = data.masquerBordureBas ?? false
+  sansColonnes.value = data.sansColonnes ?? false
   noLettrine.value = data.noLettrine ?? false
   visuelBgBlack.value = data.visuelBgBlack ?? true
   visuelGrayscale.value = data.visuelGrayscale ?? true
@@ -163,6 +166,11 @@ function removeVisuel() {
   visuelRemoved.value = true
 }
 
+function buildVisuelChemin(fileName: string, bulletinNumero: number, isPublicationSpeciale: boolean) {
+  const subDir = isPublicationSpeciale ? `special/${bulletinNumero}` : String(bulletinNumero)
+  return `/data/visuels/${subDir}/${fileName}`
+}
+
 async function submit() {
   if (!titre.value.trim()) {
     status.value = 'error'
@@ -198,6 +206,7 @@ async function submit() {
   form.append('bordure-gauche', String(bordureGauche.value))
   form.append('encadre', String(encadre.value))
   form.append('masquer-bordure-bas', String(masquerBordureBas.value))
+  form.append('sans-colonnes', String(sansColonnes.value))
   form.append('no-lettrine', String(noLettrine.value))
   form.append('visuel-bg-black', String(visuelBgBlack.value))
   form.append('visuel-grayscale', String(visuelGrayscale.value))
@@ -205,7 +214,13 @@ async function submit() {
   form.append('description-align', descriptionAlign.value)
   form.append('titre-align', titreAlign.value)
   if (visuelRemoved.value) form.append('supprimer-visuel', 'true')
-  if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
+  if (visuelFile.value) {
+    form.append(
+      'visuel-chemin',
+      buildVisuelChemin(visuelFile.value.name, numero.value!, publicationSpeciale.value)
+    )
+    form.append('visuel', visuelFile.value, visuelFile.value.name)
+  }
 
   try {
     await $fetch(`/api/articles/${encodeURIComponent(id.value)}`, { method: 'PUT', body: form })
@@ -589,6 +604,10 @@ async function submit() {
                 <label class="flex items-center gap-2 text-sm text-slate-700">
                   <input v-model="masquerBordureBas" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                   Masquer la bordure basse
+                </label>
+                <label class="flex items-center gap-2 text-sm text-slate-700">
+                  <input v-model="sansColonnes" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                  Sans colonnes (texte)
                 </label>
                 <label class="flex items-center gap-2 text-sm text-slate-700">
                   <input v-model="noLettrine" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">

@@ -1,5 +1,5 @@
 import { readMultipartFormData, createError } from 'h3'
-import { parseArticleDisplayFields, saveVisuelFile } from '../../utils/articleDisplayFields'
+import { parseArticleDisplayFields, resolveExistingVisuelChemin, saveVisuelFile } from '../../utils/articleDisplayFields'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -35,9 +35,16 @@ export default defineEventHandler(async (event) => {
     : existing.publicationSpeciale
 
   let visuelPath = existing.visuel
+  const visuelChemin = get('visuel-chemin').trim()
 
   if (visuelPart?.data && visuelPart.filename) {
-    visuelPath = await saveVisuelFile(visuelPart, numero)
+    visuelPath = await saveVisuelFile(visuelPart, {
+      numero,
+      publicationSpeciale,
+      chemin: visuelChemin || undefined
+    })
+  } else if (visuelChemin) {
+    visuelPath = await resolveExistingVisuelChemin(visuelChemin)
   } else if (supprimerVisuel) {
     visuelPath = ''
   }
@@ -67,6 +74,7 @@ export default defineEventHandler(async (event) => {
   existing.masquerBordureVisuel = display.masquerBordureVisuel
   existing.encadre = display.encadre
   existing.masquerBordureBas = display.masquerBordureBas
+  existing.sansColonnes = display.sansColonnes
   existing.descriptionAlign = display.descriptionAlign
   existing.titreAlign = display.titreAlign
 

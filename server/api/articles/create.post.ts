@@ -24,8 +24,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const publicationSpeciale = get('publication-speciale') === 'true'
+  const visuelChemin = get('visuel-chemin').trim()
 
-  const visuelPath = await saveVisuelFile(visuelPart, numero)
+  const visuelPath = await saveVisuelFile(visuelPart, {
+    numero,
+    publicationSpeciale,
+    chemin: visuelChemin || undefined
+  })
 
   const now = new Date()
   const ts = Date.now()

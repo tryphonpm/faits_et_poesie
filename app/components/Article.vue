@@ -33,6 +33,7 @@ export interface ArticleDocument {
   masquerBordureVisuel: boolean
   encadre: boolean
   masquerBordureBas: boolean
+  sansColonnes: boolean
   descriptionAlign: DescriptionAlign
   createdAt: string
 }
@@ -63,6 +64,8 @@ const props = withDefaults(defineProps<{
   encadre?: boolean | null
   /** Masque la bordure basse par défaut de l'article (`null` = valeur en base) */
   masquerBordureBas?: boolean | null
+  /** Désactive les colonnes CSS du corps de texte (`null` = valeur en base) */
+  sansColonnes?: boolean | null
   /** Alignement de la description (`null` = valeur en base) */
   descriptionAlign?: DescriptionAlign | null
   /** Alignement du titre : gauche, centre ou droite (`null` = valeur en base) */
@@ -76,6 +79,7 @@ const props = withDefaults(defineProps<{
   masquerBordureVisuel: null,
   encadre: null,
   masquerBordureBas: null,
+  sansColonnes: null,
   descriptionAlign: null,
   titreAlign: null
 })
@@ -219,6 +223,7 @@ const effectiveVisuelGrayscale = computed(() => propBooleanDefaultTrue(props.vis
 const effectiveMasquerBordureVisuel = computed(() => propBoolean(props.masquerBordureVisuel, data.value?.masquerBordureVisuel))
 const effectiveEncadre = computed(() => propBoolean(props.encadre, data.value?.encadre))
 const effectiveMasquerBordureBas = computed(() => propBoolean(props.masquerBordureBas, data.value?.masquerBordureBas))
+const effectiveSansColonnes = computed(() => propBoolean(props.sansColonnes, data.value?.sansColonnes))
 const effectiveDescriptionAlign = computed<DescriptionAlign>(() =>
   propDescriptionAlign(props.descriptionAlign, data.value?.descriptionAlign)
 )
@@ -279,11 +284,14 @@ const visibleMetaFields = computed(() =>
 )
 
 const articleCorpsClass = computed(() => {
-  const classes = ['fp-article-corps', 'fp-article-corps--multicol']
-  if (!effectiveNoLettrine.value) classes.push('fp-article-lettrine')
-  if (isColumnsLayout.value || effectiveLayout.value === 'stack') {
-    classes.push(textColumnsClasses[effectiveNbColonnes.value] ?? textColumnsClasses[1]!)
+  const classes = ['fp-article-corps']
+  if (!effectiveSansColonnes.value) {
+    classes.push('fp-article-corps--multicol')
+    if (isColumnsLayout.value || effectiveLayout.value === 'stack') {
+      classes.push(textColumnsClasses[effectiveNbColonnes.value] ?? textColumnsClasses[1]!)
+    }
   }
+  if (!effectiveNoLettrine.value) classes.push('fp-article-lettrine')
   return classes
 })
 

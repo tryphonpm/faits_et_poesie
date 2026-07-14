@@ -62,6 +62,7 @@ const masquerTitre = ref(false)
 const bordureGauche = ref(false)
 const encadre = ref(false)
 const masquerBordureBas = ref(false)
+const sansColonnes = ref(false)
 const noLettrine = ref(false)
 const descriptionAlign = ref<'left' | 'center' | 'right'>('right')
 const titreAlign = ref<'left' | 'center' | 'right'>('left')
@@ -108,6 +109,11 @@ function removeVisuel() {
   visuelPreview.value = null
 }
 
+function buildVisuelChemin(fileName: string, bulletinNumero: number, isPublicationSpeciale: boolean) {
+  const subDir = isPublicationSpeciale ? `special/${bulletinNumero}` : String(bulletinNumero)
+  return `/data/visuels/${subDir}/${fileName}`
+}
+
 async function submit() {
   if (!titre.value.trim()) {
     status.value = 'error'
@@ -151,10 +157,14 @@ async function submit() {
   form.append('bordure-gauche', String(bordureGauche.value))
   form.append('encadre', String(encadre.value))
   form.append('masquer-bordure-bas', String(masquerBordureBas.value))
+  form.append('sans-colonnes', String(sansColonnes.value))
   form.append('no-lettrine', String(noLettrine.value))
   form.append('description-align', descriptionAlign.value)
   form.append('titre-align', titreAlign.value)
-  if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
+  if (visuelFile.value) {
+    form.append('visuel-chemin', buildVisuelChemin(visuelFile.value.name, numeroInt, isSpecial))
+    form.append('visuel', visuelFile.value, visuelFile.value.name)
+  }
 
   try {
     await $fetch('/api/articles/create', { method: 'POST', body: form })
@@ -513,6 +523,10 @@ async function submit() {
               <label class="flex items-center gap-2 text-sm text-slate-700">
                 <input v-model="masquerBordureBas" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                 Masquer la bordure basse
+              </label>
+              <label class="flex items-center gap-2 text-sm text-slate-700">
+                <input v-model="sansColonnes" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                Sans colonnes (texte)
               </label>
               <label class="flex items-center gap-2 text-sm text-slate-700">
                 <input v-model="noLettrine" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
