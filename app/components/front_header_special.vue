@@ -10,11 +10,11 @@ const EDITION = 'É D I T I O N '
 const SPECIALE = 'S P É C I A L E'
 
 const props = withDefaults(defineProps<{
-  meteo?: string
+  titre?: string
   metaCenter?: string
   metaRight?: string
 }>(), {
-  meteo: 'clair',
+  titre: '',
   metaCenter: '',
   metaRight: ''
 })
@@ -51,6 +51,11 @@ function formatPublicationDateFr(dateStr: string) {
   }).format(date)
 }
 
+const titreFormatted = computed(() => {
+  if (props.titre) return props.titre
+  return publication.value?.titre ?? ''
+})
+
 const metaCenterFormatted = computed(() => {
   if (props.metaCenter) return props.metaCenter
   if (publication.value?.date_publication) {
@@ -69,7 +74,7 @@ const metaCenterFormatted = computed(() => {
   <header class="fp-front-header">
     <div class="fp-front-header-top">
       <div class="fp-front-header-top-left">{{ TOP_LEFT }}</div>
-      <div class="fp-front-header-top-meteo">Météo : {{ meteo }}</div>
+      <div class="fp-front-header-top-meteo">{{ titreFormatted }}</div>
     </div>
 
     <div class="fp-front-header-main">

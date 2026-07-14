@@ -8,9 +8,7 @@ useHead({ title: 'Faits & Poésie — Maquette Numéro Spécial' })
 
 <template>
   <!-- Ligne 1 : en-tête sur les 5 colonnes (fp-front-header → md:col-span-5) -->
-  <FrontHeaderSpecial
-    meteo="pluvieux"
-  />
+  <FrontHeaderSpecial />
 
   <!-- espagne régularisation -->
   <Article
