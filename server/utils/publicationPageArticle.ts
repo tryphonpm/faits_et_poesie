@@ -9,16 +9,19 @@ function sanitizeCommentText(value: string) {
 export async function appendArticleToPublicationPage(
   numero: number,
   titre: string,
-  id: string
+  id: string,
+  options?: { special?: boolean }
 ) {
-  const pagePath = join(process.cwd(), 'app', 'pages', 'publications', `${numero}.vue`)
+  const folder = options?.special ? 'publications_speciales' : 'publications'
+  const routePrefix = options?.special ? '/publications_speciales' : '/publications'
+  const pagePath = join(process.cwd(), 'app', 'pages', folder, `${numero}.vue`)
 
   try {
     await access(pagePath)
   } catch {
     throw createError({
       statusCode: 404,
-      message: `La page /publications/${numero} n'existe pas. Créez d'abord la publication.`
+      message: `La page ${routePrefix}/${numero} n'existe pas. Créez d'abord la publication.`
     })
   }
 

@@ -2,6 +2,7 @@
 interface Article {
   id: string
   numero?: number
+  publicationSpeciale?: boolean
   titre: string
   sousTitre: string
   article: string
@@ -24,6 +25,7 @@ interface Article {
   encadre?: boolean
   masquerBordureBas?: boolean
   descriptionAlign?: 'left' | 'center' | 'right'
+  titreAlign?: 'left' | 'center' | 'right'
   createdAt: string | null
 }
 
@@ -46,6 +48,7 @@ useHead(() => ({
 
 const titre = ref('')
 const numero = ref<number | null>(null)
+const publicationSpeciale = ref(false)
 const sousTitre = ref('')
 const article = ref('')
 const description = ref('')
@@ -72,6 +75,7 @@ const visuelBgBlack = ref(true)
 const visuelGrayscale = ref(true)
 const masquerBordureVisuel = ref(false)
 const descriptionAlign = ref<'left' | 'center' | 'right'>('right')
+const titreAlign = ref<'left' | 'center' | 'right'>('left')
 
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const message = ref('')
@@ -94,6 +98,7 @@ watch(initial, (data) => {
   if (!data) return
   titre.value = data.titre
   numero.value = data.numero ?? null
+  publicationSpeciale.value = data.publicationSpeciale === true
   sousTitre.value = data.sousTitre
   article.value = data.article
   description.value = data.description
@@ -113,6 +118,7 @@ watch(initial, (data) => {
   visuelGrayscale.value = data.visuelGrayscale ?? true
   masquerBordureVisuel.value = data.masquerBordureVisuel ?? false
   descriptionAlign.value = data.descriptionAlign ?? 'right'
+  titreAlign.value = data.titreAlign ?? 'left'
   const storedFontSize = data.titreFontSize ?? ''
   if (storedFontSize && !isTailwindFontSize(storedFontSize)) {
     titreFontSize.value = ''
@@ -175,6 +181,7 @@ async function submit() {
 
   const form = new FormData()
   form.append('numero', String(numero.value))
+  form.append('publication-speciale', publicationSpeciale.value ? 'true' : 'false')
   form.append('titre', titre.value)
   form.append('sous-titre', sousTitre.value)
   form.append('article', article.value)
@@ -196,6 +203,7 @@ async function submit() {
   form.append('visuel-grayscale', String(visuelGrayscale.value))
   form.append('masquer-bordure-visuel', String(masquerBordureVisuel.value))
   form.append('description-align', descriptionAlign.value)
+  form.append('titre-align', titreAlign.value)
   if (visuelRemoved.value) form.append('supprimer-visuel', 'true')
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
 
@@ -533,6 +541,21 @@ async function submit() {
                     class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label class="mb-1 block text-sm font-medium text-slate-600" for="titre-align">
+                  Alignement du titre
+                </label>
+                <select
+                  id="titre-align"
+                  v-model="titreAlign"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                >
+                  <option value="left">Gauche</option>
+                  <option value="center">Centré</option>
+                  <option value="right">Droite</option>
+                </select>
               </div>
 
               <div>

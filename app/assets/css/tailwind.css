@@ -173,6 +173,18 @@
     @apply font-display text-2xl font-bold leading-tight text-ink sm:text-3xl whitespace-pre-line;
   }
 
+  .fp-article-titre--left {
+    @apply !text-left;
+  }
+
+  .fp-article-titre--center {
+    @apply !text-center;
+  }
+
+  .fp-article-titre--right {
+    @apply !text-right;
+  }
+
   .fp-article-sous-titre {
     @apply text-lg font-normal italic text-ink-muted whitespace-pre-line;
     line-height: 1.4;

@@ -8,9 +8,36 @@ interface PublicationSummary {
   createdAt: string | null
 }
 
+interface PublicationSpecialeSummary {
+  numero: number
+  titre: string
+}
+
 const { data: categories } = await useFetch<string[]>('/api/categories', { default: () => [] })
 const { data: publications, status: publicationsStatus } = await useFetch<PublicationSummary[]>('/api/publications', {
   default: () => [] as PublicationSummary[]
+})
+const { data: publicationsSpeciales, status: publicationsSpecialesStatus } = await useFetch<PublicationSpecialeSummary[]>(
+  '/api/publications-speciales',
+  { default: () => [] as PublicationSpecialeSummary[] }
+)
+
+const publicationsLoading = computed(
+  () => publicationsStatus.value === 'pending' || publicationsSpecialesStatus.value === 'pending'
+)
+const hasPublications = computed(
+  () => (publications.value?.length ?? 0) > 0 || (publicationsSpeciales.value?.length ?? 0) > 0
+)
+const isSpecialSelection = computed(() => numero.value.startsWith('special-'))
+const selectedNumero = computed(() => {
+  if (!numero.value) return null
+  if (numero.value.startsWith('special-')) return Number(numero.value.replace('special-', ''))
+  return Number(numero.value)
+})
+const publicationPagePath = computed(() => {
+  const n = selectedNumero.value
+  if (!n) return '…'
+  return isSpecialSelection.value ? `/publications_speciales/${n}` : `/publications/${n}`
 })
 
 const titre = ref('')
@@ -37,6 +64,7 @@ const encadre = ref(false)
 const masquerBordureBas = ref(false)
 const noLettrine = ref(false)
 const descriptionAlign = ref<'left' | 'center' | 'right'>('right')
+const titreAlign = ref<'left' | 'center' | 'right'>('left')
 
 const titreFontSizeOptions = [
   '', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'
@@ -89,14 +117,15 @@ async function submit() {
 
   if (!numero.value) {
     status.value = 'error'
-    message.value = 'Sélectionnez un numéro de bulletin.'
+    message.value = 'Sélectionnez une publication.'
     return
   }
 
-  const numeroInt = Number(numero.value)
+  const isSpecial = numero.value.startsWith('special-')
+  const numeroInt = Number(isSpecial ? numero.value.replace('special-', '') : numero.value)
   if (!Number.isInteger(numeroInt) || numeroInt < 1) {
     status.value = 'error'
-    message.value = 'Le numéro de bulletin sélectionné est invalide.'
+    message.value = 'La publication sélectionnée est invalide.'
     return
   }
 
@@ -105,6 +134,7 @@ async function submit() {
 
   const form = new FormData()
   form.append('numero', String(numeroInt))
+  form.append('publication-speciale', isSpecial ? 'true' : 'false')
   form.append('titre', titre.value)
   form.append('sous-titre', sousTitre.value)
   form.append('article', article.value)
@@ -123,6 +153,7 @@ async function submit() {
   form.append('masquer-bordure-bas', String(masquerBordureBas.value))
   form.append('no-lettrine', String(noLettrine.value))
   form.append('description-align', descriptionAlign.value)
+  form.append('titre-align', titreAlign.value)
   if (visuelFile.value) form.append('visuel', visuelFile.value, visuelFile.value.name)
 
   try {
@@ -146,35 +177,51 @@ async function submit() {
         <!-- Numéro de bulletin -->
         <div>
           <label class="mb-1 block text-sm font-semibold text-slate-700" for="numero">
-            Numéro de bulletin <span class="text-red-500">*</span>
+            Publication <span class="text-red-500">*</span>
           </label>
           <select
             id="numero"
             v-model="numero"
             required
-            :disabled="publicationsStatus === 'pending' || !publications?.length"
+            :disabled="publicationsLoading || !hasPublications"
             class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none ring-0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
           >
             <option value="" disabled>
-              {{ publicationsStatus === 'pending' ? 'Chargement…' : 'Sélectionner un bulletin…' }}
+              {{ publicationsLoading ? 'Chargement…' : 'Sélectionner une publication…' }}
             </option>
-            <option
-              v-for="publication in publications"
-              :key="publication.numero"
-              :value="String(publication.numero)"
-            >
-              Bulletin n°{{ publication.numero }}
-            </option>
+            <optgroup v-if="publications?.length" label="Publications">
+              <option
+                v-for="publication in publications"
+                :key="`pub-${publication.numero}`"
+                :value="String(publication.numero)"
+              >
+                Bulletin n°{{ publication.numero }}
+              </option>
+            </optgroup>
+            <optgroup v-if="publicationsSpeciales?.length" label="Publications spéciales">
+              <option
+                v-for="publication in publicationsSpeciales"
+                :key="`special-${publication.numero}`"
+                :value="`special-${publication.numero}`"
+              >
+                Spécial n°{{ publication.numero }}{{ publication.titre ? ` — ${publication.titre}` : '' }}
+              </option>
+            </optgroup>
           </select>
-          <p v-if="publicationsStatus !== 'pending' && !publications?.length" class="mt-1.5 text-xs text-amber-600">
+          <p v-if="!publicationsLoading && !hasPublications" class="mt-1.5 text-xs text-amber-600">
             Aucune publication en base.
             <NuxtLink to="/ajout_publication" class="font-medium underline hover:text-amber-700">
               Créer un bulletin
             </NuxtLink>
+            ou
+            <NuxtLink to="/ajout_publication_speciale" class="font-medium underline hover:text-amber-700">
+              une publication spéciale
+            </NuxtLink>
             d'abord.
           </p>
           <p v-else class="mt-1.5 text-xs text-slate-400">
-            Obligatoire — l'article sera ajouté à la page <code class="rounded bg-slate-100 px-1">/publications/{{ numero || '…' }}</code>.
+            Obligatoire — l'article sera ajouté à la page
+            <code class="rounded bg-slate-100 px-1">{{ publicationPagePath }}</code>.
           </p>
         </div>
 
@@ -418,6 +465,21 @@ async function submit() {
                   class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                 />
               </div>
+            </div>
+
+            <div>
+              <label class="mb-1 block text-sm font-medium text-slate-600" for="titre-align">
+                Alignement du titre
+              </label>
+              <select
+                id="titre-align"
+                v-model="titreAlign"
+                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              >
+                <option value="left">Gauche</option>
+                <option value="center">Centré</option>
+                <option value="right">Droite</option>
+              </select>
             </div>
 
             <div>

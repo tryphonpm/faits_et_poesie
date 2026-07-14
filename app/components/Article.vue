@@ -3,6 +3,7 @@ export type ArticleLayout = 'stack' | 'float' | 'columns'
 export type VisuelPosition = 'before-article' | 'after-article'
 export type VisuelAlign = 'left' | 'right'
 export type DescriptionAlign = 'left' | 'center' | 'right'
+export type TitreAlign = 'left' | 'center' | 'right'
 export type TitreFontSize =
   | 'xs' | 'sm' | 'base'
   | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | '8xl' | '9xl'
@@ -23,6 +24,7 @@ export interface ArticleDocument {
   nbColonnes: number
   nbRows: number
   titreFontSize: string
+  titreAlign: TitreAlign
   masquerTitre: boolean
   bordureGauche: boolean
   noLettrine: boolean
@@ -63,6 +65,8 @@ const props = withDefaults(defineProps<{
   masquerBordureBas?: boolean | null
   /** Alignement de la description (`null` = valeur en base) */
   descriptionAlign?: DescriptionAlign | null
+  /** Alignement du titre : gauche, centre ou droite (`null` = valeur en base) */
+  titreAlign?: TitreAlign | null
 }>(), {
   masquerTitre: null,
   bordureGauche: null,
@@ -72,7 +76,8 @@ const props = withDefaults(defineProps<{
   masquerBordureVisuel: null,
   encadre: null,
   masquerBordureBas: null,
-  descriptionAlign: null
+  descriptionAlign: null,
+  titreAlign: null
 })
 
 function propBoolean(prop: boolean | null | undefined, dbValue?: boolean) {
@@ -92,6 +97,15 @@ function propDescriptionAlign(
   if (prop !== null && prop !== undefined) return prop
   if (dbValue === 'left' || dbValue === 'center' || dbValue === 'right') return dbValue
   return 'right'
+}
+
+function propTitreAlign(
+  prop: TitreAlign | null | undefined,
+  dbValue?: TitreAlign
+): TitreAlign {
+  if (prop !== null && prop !== undefined) return prop
+  if (dbValue === 'left' || dbValue === 'center' || dbValue === 'right') return dbValue
+  return 'left'
 }
 
 const metaFields = ['categorie', 'titre', 'sousTitre'] as const
@@ -139,6 +153,12 @@ const descriptionAlignClasses: Record<DescriptionAlign, string> = {
   left: 'fp-article-description--left',
   center: 'fp-article-description--center',
   right: 'fp-article-description--right'
+}
+
+const titreAlignClasses: Record<TitreAlign, string> = {
+  left: 'fp-article-titre--left',
+  center: 'fp-article-titre--center',
+  right: 'fp-article-titre--right'
 }
 
 const titreFontSizeClasses: Record<TitreFontSize, string> = {
@@ -202,6 +222,9 @@ const effectiveMasquerBordureBas = computed(() => propBoolean(props.masquerBordu
 const effectiveDescriptionAlign = computed<DescriptionAlign>(() =>
   propDescriptionAlign(props.descriptionAlign, data.value?.descriptionAlign)
 )
+const effectiveTitreAlign = computed<TitreAlign>(() =>
+  propTitreAlign(props.titreAlign, data.value?.titreAlign)
+)
 
 const descriptionClass = computed(() => [
   fieldClasses.description,
@@ -213,19 +236,25 @@ const descriptionStyle = computed(() => ({
 }))
 
 function metaFieldClass(key: MetaKey): string | string[] {
-  if (key !== 'titre' || !effectiveTitreFontSize.value) return fieldClasses[key]
-  const token = effectiveTitreFontSize.value as TitreFontSize
-  if (titreFontSizeClasses[token]) {
-    return [fieldClasses.titre, titreFontSizeClasses[token]]
+  if (key === 'titre') {
+    const classes = [fieldClasses.titre, titreAlignClasses[effectiveTitreAlign.value]]
+    if (!effectiveTitreFontSize.value) return classes
+    const token = effectiveTitreFontSize.value as TitreFontSize
+    if (titreFontSizeClasses[token]) {
+      return [...classes, titreFontSizeClasses[token]]
+    }
+    return classes
   }
-  return fieldClasses.titre
+  return fieldClasses[key]
 }
 
 const titreStyle = computed(() => {
+  const style: Record<string, string> = { textAlign: effectiveTitreAlign.value }
   const size = effectiveTitreFontSize.value
-  if (!size || titreFontSizeClasses[size as TitreFontSize]) return undefined
-  if (isCssFontSize(size)) return { fontSize: size }
-  return undefined
+  if (size && !titreFontSizeClasses[size as TitreFontSize] && isCssFontSize(size)) {
+    style.fontSize = size
+  }
+  return style
 })
 
 const isFloatLayout = computed(() => effectiveLayout.value === 'float')

@@ -59,7 +59,10 @@ export default defineEventHandler(async (event) => {
     }
 
     await renamePublicationPage(oldNumero, newNumero)
-    await Article.updateMany({ numero: oldNumero }, { numero: newNumero })
+    await Article.updateMany(
+      { numero: oldNumero, publicationSpeciale: { $ne: true } },
+      { $set: { numero: newNumero } }
+    )
     existing.numero = newNumero
   }
 

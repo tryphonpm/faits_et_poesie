@@ -58,11 +58,17 @@ export default defineEventHandler(async (event) => {
   await Article.create(payload)
 
   try {
-    await appendArticleToPublicationPage(numero, titre, id)
+    await appendArticleToPublicationPage(numero, titre, id, { special: publicationSpeciale })
   } catch (err) {
     await Article.deleteOne({ id })
     throw err
   }
 
-  return { success: true, id, numero, visuel: visuelPath, publicationPage: `/publications/${numero}` }
+  return {
+    success: true,
+    id,
+    numero,
+    visuel: visuelPath,
+    publicationPage: publicationSpeciale ? `/publications_speciales/${numero}` : `/publications/${numero}`
+  }
 })

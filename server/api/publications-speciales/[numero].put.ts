@@ -1,7 +1,37 @@
-import { access, rename } from 'node:fs/promises'
+import { access, readFile, rename } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createError, readBody } from 'h3'
 import { normalizePublicationDate } from '../../utils/publicationDate'
+
+function extractArticleIds(content: string): string[] {
+  return [...content.matchAll(/<Article\s+id="([^"]+)"/g)].map((match) => match[1])
+}
+
+async function syncSpecialPublicationArticles(oldNumero: number, newNumero: number) {
+  const pagePath = join(process.cwd(), 'app', 'pages', 'publications_speciales', `${newNumero}.vue`)
+  let articleIds: string[] = []
+
+  try {
+    const content = await readFile(pagePath, 'utf-8')
+    articleIds = extractArticleIds(content)
+  } catch {
+    // La page peut être absente si la publication vient d'être créée.
+  }
+
+  if (oldNumero !== newNumero) {
+    await Article.updateMany(
+      { numero: oldNumero, publicationSpeciale: true },
+      { $set: { numero: newNumero, publicationSpeciale: true } }
+    )
+  }
+
+  if (articleIds.length > 0) {
+    await Article.updateMany(
+      { id: { $in: articleIds } },
+      { $set: { numero: newNumero, publicationSpeciale: true } }
+    )
+  }
+}
 
 async function renamePublicationSpecialePage(oldNumero: number, newNumero: number) {
   const pagesDir = join(process.cwd(), 'app', 'pages', 'publications_speciales')
@@ -66,6 +96,8 @@ export default defineEventHandler(async (event) => {
   existing.date_publication = date_publication
   existing.status = status
   await existing.save()
+
+  await syncSpecialPublicationArticles(oldNumero, newNumero)
 
   return {
     success: true,

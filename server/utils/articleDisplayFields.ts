@@ -9,6 +9,7 @@ export function parseArticleDisplayFields(get: GetField) {
   const visuelPosition = get('visuel-position')
   const visuelAlign = get('visuel-align')
   const descriptionAlign = get('description-align')
+  const titreAlign = get('titre-align')
 
   return {
     layout: layout === 'stack' || layout === 'float' || layout === 'columns' ? layout : 'stack',
@@ -21,6 +22,10 @@ export function parseArticleDisplayFields(get: GetField) {
     nbColonnes: clampColumns(Number(get('nb-colonnes'))),
     nbRows: clampColumns(Number(get('nb-rows'))),
     titreFontSize: get('titre-font-size').trim(),
+    titreAlign:
+      titreAlign === 'left' || titreAlign === 'center' || titreAlign === 'right'
+        ? titreAlign
+        : 'left' as const,
     masquerTitre: get('masquer-titre') === 'true',
     bordureGauche: get('bordure-gauche') === 'true',
     noLettrine: get('no-lettrine') === 'true',

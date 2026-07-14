@@ -19,6 +19,7 @@ export const Article = defineMongooseModel({
     nbColonnes: { type: Number, default: 1, min: 1, max: 5 },
     nbRows: { type: Number, default: 1, min: 1, max: 5 },
     titreFontSize: { type: String, default: '' },
+    titreAlign: { type: String, enum: ['left', 'center', 'right'], default: 'left' },
     masquerTitre: { type: Boolean, default: false },
     bordureGauche: { type: Boolean, default: false },
     noLettrine: { type: Boolean, default: false },
